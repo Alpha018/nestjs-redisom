@@ -1,22 +1,11 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { TestingModule, Test } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import { RedisOmModule } from '../src/redis-om/redis-om.module';
-import { Schema } from '../src/redis-om/decorators/schema.decorator';
-import { Prop } from '../src/redis-om/decorators/prop.decorator';
-import { InjectRepository } from '../src/redis-om/decorators/inject-repository.decorator';
 import { Repository } from 'redis-om';
+
+import { InjectRepository } from '../src/redis-om/decorators/inject-repository.decorator';
+import { RedisOmModule } from '../src/redis-om/redis-om.module';
 import { BaseEntity } from '../src/redis-om/common/base.entity';
-
-@Schema({ dataStructure: 'JSON' })
-class CatEntity extends BaseEntity {
-  @Prop()
-  name: string;
-
-  @Prop()
-  age: number;
-
-  [key: string]: any;
-}
+import { CatEntity } from './cat.entity';
 
 class CatsService {
   constructor(

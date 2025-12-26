@@ -1,26 +1,25 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { REDIS_OM_PROP_METADATA } from '../redis-om.constants';
-
-export type RedisOmFieldType =
-  | 'string'
-  | 'number'
-  | 'boolean'
-  | 'string[]'
-  | 'date'
-  | 'point'
-  | 'text';
 
 export interface PropOptions {
   type?: RedisOmFieldType;
-  indexed?: boolean;
-  sortable?: boolean;
+  caseSensitive?: boolean;
   textSearch?: boolean;
   normalized?: boolean;
-  weight?: number;
-  caseSensitive?: boolean;
+  sortable?: boolean;
+  indexed?: boolean;
   matcher?: string;
+  weight?: number;
   field?: string; // name in redis, alias
 }
+
+export type RedisOmFieldType =
+  | 'string[]'
+  | 'boolean'
+  | 'string'
+  | 'number'
+  | 'point'
+  | 'date'
+  | 'text';
 
 export function Prop(options: PropOptions = {}): PropertyDecorator {
   return (target: object, propertyKey: string | symbol) => {

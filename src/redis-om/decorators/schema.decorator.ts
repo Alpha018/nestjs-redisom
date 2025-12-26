@@ -1,8 +1,8 @@
 import { REDIS_OM_SCHEMA_METADATA } from '../redis-om.constants';
 
 export interface SchemaOptions {
-  indexName?: string;
   dataStructure?: 'JSON' | 'HASH';
+  indexName?: string;
 }
 
 export function Schema(options: SchemaOptions = {}): ClassDecorator {

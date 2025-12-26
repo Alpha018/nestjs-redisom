@@ -1,9 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument */
 import { Type } from '@nestjs/common';
 import { Schema } from 'redis-om';
+
 import {
-  REDIS_OM_PROP_METADATA,
   REDIS_OM_SCHEMA_METADATA,
+  REDIS_OM_PROP_METADATA,
 } from '../redis-om.constants';
 
 export class SchemaFactory {

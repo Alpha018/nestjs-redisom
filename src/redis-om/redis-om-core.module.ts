@@ -1,49 +1,26 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import {
+  OnApplicationShutdown,
   DynamicModule,
+  Provider,
   Global,
   Module,
-  Provider,
-  OnApplicationShutdown,
 } from '@nestjs/common';
-import { Client } from 'redis-om';
 import { createClient } from 'redis';
+import { Client } from 'redis-om';
+
 import { RedisOmModuleAsyncOptions, RedisOmModuleOptions } from './interfaces';
 import { getConnectionToken } from './common/redis-om.utils';
 
-@Global()
 @Module({})
+@Global()
 export class RedisOmCoreModule implements OnApplicationShutdown {
-  static forRoot(options: RedisOmModuleOptions): DynamicModule {
-    const redisOmConnectionProvider: Provider = {
-      provide: getConnectionToken(),
-      useFactory: async () => {
-        const client = new Client();
-        const redisInfo = options.url ? { url: options.url } : options;
-        const redisClient = createClient(redisInfo);
-        await redisClient.connect();
-
-        return await client.use(redisClient as any);
-      },
-    };
-
-    return {
-      module: RedisOmCoreModule,
-      providers: [redisOmConnectionProvider],
-      exports: [redisOmConnectionProvider],
-    };
-  }
-
   static forRootAsync(options: RedisOmModuleAsyncOptions): DynamicModule {
     const asyncProviders = this.createAsyncProviders(options);
 
     return {
-      module: RedisOmCoreModule,
-      imports: options.imports,
       providers: [
         ...asyncProviders,
         {
-          provide: getConnectionToken(),
           useFactory: async (opt: RedisOmModuleOptions) => {
             const client = new Client();
             const redisInfo = opt.url ? { url: opt.url } : opt;
@@ -53,9 +30,32 @@ export class RedisOmCoreModule implements OnApplicationShutdown {
             return await client.use(redisClient as any);
           },
           inject: ['REDIS_OM_MODULE_OPTIONS'], // Injected from createAsyncProviders
+          provide: getConnectionToken(),
         },
       ],
       exports: [getConnectionToken()],
+      module: RedisOmCoreModule,
+      imports: options.imports,
+    };
+  }
+
+  static forRoot(options: RedisOmModuleOptions): DynamicModule {
+    const redisOmConnectionProvider: Provider = {
+      useFactory: async () => {
+        const client = new Client();
+        const redisInfo = options.url ? { url: options.url } : options;
+        const redisClient = createClient(redisInfo);
+        await redisClient.connect();
+
+        return await client.use(redisClient as any);
+      },
+      provide: getConnectionToken(),
+    };
+
+    return {
+      providers: [redisOmConnectionProvider],
+      exports: [redisOmConnectionProvider],
+      module: RedisOmCoreModule,
     };
   }
 

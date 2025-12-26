@@ -2,9 +2,7 @@ import { TestingModule, Test } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { Repository } from 'redis-om';
 
-import { InjectRepository } from '../src/redis-om/decorators/inject-repository.decorator';
-import { RedisOmModule } from '../src/redis-om/redis-om.module';
-import { BaseEntity } from '../src/redis-om/common/base.entity';
+import { InjectRepository, RedisOmModule, BaseEntity } from '../src';
 import { CatEntity } from './cat.entity';
 
 class CatsService {

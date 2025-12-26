@@ -6,9 +6,9 @@ import {
   Module,
 } from '@nestjs/common';
 import { createClient } from 'redis';
-import { Client } from 'redis-om';
 
 import { RedisOmModuleAsyncOptions, RedisOmModuleOptions } from './interfaces';
+import { REDIS_OM_MODULE_OPTIONS } from './redis-om.constants';
 import { getConnectionToken } from './common/redis-om.utils';
 
 @Module({})
@@ -22,14 +22,13 @@ export class RedisOmCoreModule implements OnApplicationShutdown {
         ...asyncProviders,
         {
           useFactory: async (opt: RedisOmModuleOptions) => {
-            const client = new Client();
             const redisInfo = opt.url ? { url: opt.url } : opt;
             const redisClient = createClient(redisInfo);
             await redisClient.connect();
 
-            return await client.use(redisClient as any);
+            return redisClient;
           },
-          inject: ['REDIS_OM_MODULE_OPTIONS'], // Injected from createAsyncProviders
+          inject: [REDIS_OM_MODULE_OPTIONS], // Injected from createAsyncProviders
           provide: getConnectionToken(),
         },
       ],
@@ -42,12 +41,11 @@ export class RedisOmCoreModule implements OnApplicationShutdown {
   static forRoot(options: RedisOmModuleOptions): DynamicModule {
     const redisOmConnectionProvider: Provider = {
       useFactory: async () => {
-        const client = new Client();
         const redisInfo = options.url ? { url: options.url } : options;
         const redisClient = createClient(redisInfo);
         await redisClient.connect();
 
-        return await client.use(redisClient as any);
+        return redisClient;
       },
       provide: getConnectionToken(),
     };
@@ -65,7 +63,7 @@ export class RedisOmCoreModule implements OnApplicationShutdown {
     if (options.useFactory) {
       return [
         {
-          provide: 'REDIS_OM_MODULE_OPTIONS',
+          provide: REDIS_OM_MODULE_OPTIONS,
           useFactory: options.useFactory,
           inject: options.inject || [],
         },

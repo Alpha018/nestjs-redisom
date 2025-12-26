@@ -6,8 +6,7 @@ export interface SchemaOptions {
 }
 
 export function Schema(options: SchemaOptions = {}): ClassDecorator {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-  return (target: Function) => {
+  return (target: object) => {
     Reflect.defineMetadata(REDIS_OM_SCHEMA_METADATA, options, target);
   };
 }

@@ -8,6 +8,8 @@ export function getRepositoryToken(entity: Type<any> | string): string {
   return `${name}Repository`;
 }
 
-export function getConnectionToken(): string {
-  return 'REDIS_OM_CONNECTION';
+export function getConnectionToken(name?: string): string {
+  return name && name !== 'default'
+    ? `REDIS_OM_CONNECTION_${name}`
+    : 'REDIS_OM_CONNECTION';
 }

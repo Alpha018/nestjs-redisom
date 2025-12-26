@@ -8,8 +8,14 @@ import {
 
 export class SchemaFactory {
   static createForClass(target: Type<any>): Schema {
-    const schemaOptions =
-      Reflect.getMetadata(REDIS_OM_SCHEMA_METADATA, target) || {};
+    const schemaOptions = Reflect.getMetadata(REDIS_OM_SCHEMA_METADATA, target);
+
+    if (!schemaOptions) {
+      throw new Error(
+        `Class ${target.name} is not decorated with @Schema decorator`,
+      );
+    }
+
     const propMetadata =
       Reflect.getMetadata(REDIS_OM_PROP_METADATA, target) || [];
 
@@ -29,7 +35,6 @@ export class SchemaFactory {
 
     return new Schema(target.name, schemaDefinition, {
       ...schemaOptions,
-      entityCtor: target,
     });
   }
 }

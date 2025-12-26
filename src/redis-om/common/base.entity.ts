@@ -6,6 +6,7 @@ export interface EntityWithId {
 
 export class BaseEntity {
   static getId(entity: EntityWithId | object): undefined | string {
-    return entity && (entity as EntityWithId)[EntityId];
+    if (!entity) return undefined;
+    return (entity as EntityWithId)[EntityId];
   }
 }

@@ -1,6 +1,5 @@
 import { DynamicModule, Provider, Module } from '@nestjs/common';
 import { Type } from '@nestjs/common';
-import { Client } from 'redis-om';
 
 import {
   getConnectionToken,
@@ -36,11 +35,13 @@ export class RedisOmModule {
   }
 }
 
+import { Repository } from 'redis-om';
+
 function createRedisOmProvider(model: Type<any>): Provider {
   return {
-    useFactory: async (client: Client) => {
+    useFactory: async (client: any) => {
       const schema = SchemaFactory.createForClass(model);
-      const repository = client.fetchRepository(schema);
+      const repository = new Repository(schema, client);
       await repository.createIndex(); // Ensure index exists
       return repository;
     },

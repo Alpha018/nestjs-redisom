@@ -16,6 +16,8 @@ export interface PropOptions {
 }
 
 export type RedisOmFieldType =
+  | { (): { new (...args: any[]): any } } // Allow factory function
+  | { new (...args: any[]): any } // Allow class constructor for nested schema
   | 'string[]'
   | 'number[]'
   | 'boolean'

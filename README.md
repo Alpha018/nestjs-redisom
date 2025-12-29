@@ -98,11 +98,103 @@ export class CatsService {
 }
 ```
 
+## Advanced Usage
+
+### 1. Nested Typed Objects
+
+You can define nested objects using classes and the `@Prop({ type: () => Class })` syntax. This allows Redis OM to automatically generate the correct schema fields (flattened) for your nested data.
+
+**Define the Embedded Class:**
+
+```typescript
+export class Address {
+  @Prop({ indexed: true })
+  city: string;
+
+  @Prop()
+  zip: string;
+}
+```
+
+**Use in Parent Entity:**
+
+```typescript
+@Schema({ dataStructure: 'JSON' })
+export class Person extends BaseEntity {
+  @Prop()
+  name: string;
+
+  @Prop({ type: () => Address })
+  address: Address;
+}
+```
+
+**Search using flattened/nested fields:**
+
+The schema generator creates flattened fields like `address_city`.
+
+```typescript
+// Search for persons living in 'New York'
+const results = await this.personRepo.search()
+  .where('address_city' as any).eq('New York')
+  .return.all();
+```
+
+### 2. Custom IDs
+
+You can explicitly set the ID when saving an entity if you don't want to use the auto-generated ULID. This is useful for using existing IDs (like UUIDs, emails, or external system IDs).
+
+```typescript
+// Using a UUID
+import { v4 as uuidv4 } from 'uuid';
+const id = uuidv4();
+await this.catRepo.save(id, entity);
+
+// Using a custom string
+await this.catRepo.save('unique-custom-id', entity);
+```
+
+### 3. TTL (Time To Live)
+
+You can set an expiration time (in seconds) for an entity. The key will automatically be deleted from Redis after the specified time.
+
+```typescript
+const id = 'temp-session-123';
+await this.catRepo.save(id, sessionEntity);
+
+// Expire after 60 seconds
+await this.catRepo.expire(id, 60);
+```
+
 ## Features
 
 -   **Schema Factory**: Automatically generates RedisOM schemas from your class metadata.
+-   **Nested Objects**: Support for typed nested objects with automatic schema flattening.
 -   **Async Configuration**: Supports `useFactory`, `useClass`, and `useExisting` for configuration.
 -   **Validation**: Compatible with `class-validator` (standard NestJS practice).
+
+## Performance & Search Mechanics
+
+This library leverages **RediSearch** (module of Redis Stack), meaning searches are **efficient and non-blocking**.
+
+### 1. How Search Works
+When you use `@Prop({ indexed: true })`, Redis OM creates an **Inverted Index**.
+- **Search**: `repo.search()...` queries this index directly. It does **NOT** perform a linear scan (SCAN command) over the keyspace.
+- **Complexity**: Searches are typically **O(K)** (where K is the number of results) or **O(log N)** for range queries. Retrieving by ID is **O(1)**.
+
+#### Search Complexity by Type
+
+| Data Type | Operation | Complexity | Notes |
+| :--- | :--- | :--- | :--- |
+| **ID** | Retrieve (`fetch`) | **O(1)** | Direct key access (fastest). |
+| **Tag / String** | Exact Match (`eq`) | **O(K)** | `K` = number of results returned. |
+| **Numeric / Date** | Range (`gt`, `lt`, `between`) | **O(log N + K)** | Uses sorted sets/trees. efficient for ranges. |
+| **Text** | Full-Text (`matches`) | **O(M + K)** | `M` = number of terms/words being searched. |
+| **Geo** | Radius / Polygon | **O(K + log N)** | Geospacial indexing. |
+
+### 2. Resource Usage
+- **Memory (RAM)**: Indexes consume additional memory. **Best Practice:** Only index fields that you intend to filter by.
+- **CPU**: Search operations are highly optimized. Initial indexing of a large existing dataset may temporarily consume CPU, but incremental updates (`save`) are lightweight.
 
 ## Resources
 

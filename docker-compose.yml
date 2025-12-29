@@ -4,3 +4,14 @@ services:
     image: redis/redis-stack:latest
     ports:
       - "6379:6379"
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis-tls-redisom
+    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
+    ports:
+      - "6380:6379"
+    volumes:
+      - ./redis-tls/conf/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - ./redis-tls/certs:/certs:ro
+    restart: unless-stopped

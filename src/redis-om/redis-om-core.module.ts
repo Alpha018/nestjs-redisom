@@ -22,7 +22,7 @@ export class RedisOmCoreModule implements OnApplicationShutdown {
         ...asyncProviders,
         {
           useFactory: async (opt: RedisOmModuleOptions) => {
-            const redisInfo = opt.url ? { url: opt.url } : opt;
+            const redisInfo = opt.url ? { ...opt } : opt;
             const redisClient = createClient(redisInfo);
             await redisClient.connect();
 
@@ -41,7 +41,7 @@ export class RedisOmCoreModule implements OnApplicationShutdown {
   static forRoot(options: RedisOmModuleOptions): DynamicModule {
     const redisOmConnectionProvider: Provider = {
       useFactory: async () => {
-        const redisInfo = options.url ? { url: options.url } : options;
+        const redisInfo = options.url ? { ...options } : options;
         const redisClient = createClient(redisInfo);
         await redisClient.connect();
 

@@ -1,10 +1,31 @@
 {
-  "name": "nestjs-redisom",
+  "name": "@alpha018/nestjs-redisom",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
-  "private": true,
-  "license": "UNLICENSED",
+  "description": "A NestJS module for RedisOM, providing a structured way to use Redis Stack JSON/Search features.",
+  "author": "Tomás Alegre <tomas.sa467@gmail.com>",
+  "readmeFilename": "README.md",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Alpha018/nestjs-redisom"
+  },
+  "keywords": [
+    "nestjs",
+    "redis",
+    "redis-om",
+    "redis-stack",
+    "database",
+    "nosql"
+  ],
+  "main": "dist/index.js",
+  "private": false,
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "files": [
+    "dist/**/*",
+    "*.md"
+  ],
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",

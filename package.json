@@ -26,6 +26,13 @@
     "dist/**/*",
     "*.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "bugs": {
+    "url": "https://github.com/Alpha018/nestjs-redisom/issues"
+  },
+  "homepage": "https://github.com/Alpha018/nestjs-redisom#readme",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",

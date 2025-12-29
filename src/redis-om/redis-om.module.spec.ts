@@ -1,10 +1,12 @@
 import { TestingModule, Test } from '@nestjs/testing';
 import { Module } from '@nestjs/common';
+import * as dotenv from 'dotenv';
 
 import { getConnectionToken } from './common/redis-om.utils';
 import { RedisOmCoreModule } from './redis-om-core.module';
 import { RedisOmModuleOptions } from './interfaces';
 import { RedisOmModule } from './redis-om.module';
+dotenv.config({ path: '.env.test' });
 
 // Mock Redis client
 jest.mock('redis', () => ({
@@ -20,7 +22,7 @@ describe('RedisOmModule', () => {
   describe('forRoot', () => {
     it('should provide the connection client', async () => {
       const module: TestingModule = await Test.createTestingModule({
-        imports: [RedisOmModule.forRoot({ url: 'redis://localhost:6379' })],
+        imports: [RedisOmModule.forRoot({ url: process.env.REDIS_URL })],
       }).compile();
 
       const connection = module.get(getConnectionToken());
@@ -33,7 +35,7 @@ describe('RedisOmModule', () => {
       const module: TestingModule = await Test.createTestingModule({
         imports: [
           RedisOmModule.forRootAsync({
-            useFactory: () => ({ url: 'redis://localhost:6379' }),
+            useFactory: () => ({ url: process.env.REDIS_URL }),
           }),
         ],
       }).compile();
@@ -46,7 +48,7 @@ describe('RedisOmModule', () => {
       @Module({
         providers: [
           {
-            useValue: { url: 'redis://localhost:6379' },
+            useValue: { url: process.env.REDIS_URL },
             provide: 'CONFIG',
           },
         ],
@@ -76,7 +78,11 @@ describe('RedisOmCoreModule', () => {
 
   beforeEach(async () => {
     module = await Test.createTestingModule({
-      imports: [RedisOmCoreModule.forRoot({ url: 'redis://test-url' })],
+      imports: [
+        RedisOmCoreModule.forRoot({
+          url: process.env.REDIS_URL || 'redis://test-url',
+        }),
+      ],
     }).compile();
   });
 

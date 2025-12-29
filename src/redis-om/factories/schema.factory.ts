@@ -33,7 +33,7 @@ export class SchemaFactory {
       schemaDefinition[propertyKey as string] = fieldDefinition;
     });
 
-    return new Schema(target.name, schemaDefinition, {
+    return new Schema(schemaOptions.name || target.name, schemaDefinition, {
       ...schemaOptions,
     });
   }

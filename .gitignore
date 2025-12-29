@@ -42,6 +42,13 @@ lerna-debug.log*
 .env.production.local
 .env.local
 
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
 # temp directory
 .temp
 .tmp
@@ -51,6 +58,13 @@ pids
 *.pid
 *.seed
 *.pid.lock
+# configuration
+application-dev.properties
+/helm/**/environment/local/
+/helm/**/secrets.yaml
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# java version
+.tool-versions

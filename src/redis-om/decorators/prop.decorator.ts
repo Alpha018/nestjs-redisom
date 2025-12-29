@@ -6,14 +6,18 @@ export interface PropOptions {
   textSearch?: boolean;
   normalized?: boolean;
   sortable?: boolean;
+  separator?: string; // Tag separator
+  stemming?: boolean;
   indexed?: boolean;
   matcher?: string;
   weight?: number;
   field?: string; // name in redis, alias
+  path?: string; // JSON path
 }
 
 export type RedisOmFieldType =
   | 'string[]'
+  | 'number[]'
   | 'boolean'
   | 'string'
   | 'number'

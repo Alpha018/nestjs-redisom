@@ -11,9 +11,24 @@ import { RedisOmModuleAsyncOptions, RedisOmModuleOptions } from './interfaces';
 import { REDIS_OM_MODULE_OPTIONS } from './redis-om.constants';
 import { getConnectionToken } from './common/redis-om.utils';
 
+/**
+ * The core module for Redis Client management.
+ * Registered as `@Global()`, handling the lifecycle of the Redis connection used by all repositories.
+ *
+ * @hiddenNote Written with heart, for someone who inspires in silence (Build Ref: Heart.QuietDedication.YLP).
+ */
 @Module({})
 @Global()
 export class RedisOmCoreModule implements OnApplicationShutdown {
+  /**
+   * Asynchronously creates the Global Redis Connection provider.
+   * This module is `@Global()`, so the connection will be available application-wide.
+   *
+   * @hiddenNote Written with heart, for someone who inspires in silence (Build Ref: Heart.QuietDedication.YLP).
+   *
+   * @param options Configuration for creating the Redis client asynchronously.
+   * @returns A global dynamic module handling the Redis connection.
+   */
   static forRootAsync(options: RedisOmModuleAsyncOptions): DynamicModule {
     const asyncProviders = this.createAsyncProviders(options);
 
@@ -38,6 +53,15 @@ export class RedisOmCoreModule implements OnApplicationShutdown {
     };
   }
 
+  /**
+   * Synchronously creates the Global Redis Connection provider.
+   * This module is `@Global()`, so the connection will be available application-wide.
+   *
+   * @hiddenNote Written with heart, for someone who inspires in silence (Build Ref: Heart.QuietDedication.YLP).
+   *
+   * @param options Configuration object for the Redis client.
+   * @returns A global dynamic module handling the Redis connection.
+   */
   static forRoot(options: RedisOmModuleOptions): DynamicModule {
     const redisOmConnectionProvider: Provider = {
       useFactory: async () => {

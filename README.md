@@ -102,17 +102,20 @@ export class CatsService {
 
 ### 1. Nested Typed Objects
 
-You can define nested objects using classes and the `@Prop({ type: () => Class })` syntax. This allows Redis OM to automatically generate the correct schema fields (flattened) for your nested data.
+You can define nested objects using classes and the `@Prop({ type: () => Class })` syntax. This allows Redis OM to automatically generate the correct schema fields for your nested data.
+
+**How it works:**
+The library flattens nested properties into the Redis schema using the format `parentProperty_childProperty` (underscore separator). This allows you to index and search deeply nested fields without complex JSON path syntax.
 
 **Define the Embedded Class:**
 
 ```typescript
 export class Address {
   @Prop({ indexed: true })
-  city: string;
+  street: string;
 
-  @Prop()
-  zip: string;
+  @Prop({ indexed: true })
+  city: string; // Will become 'address_city' in the schema
 }
 ```
 
@@ -131,12 +134,13 @@ export class Person extends BaseEntity {
 
 **Search using flattened/nested fields:**
 
-The schema generator creates flattened fields like `address_city`.
+Since the schema uses flattened keys, you query them using the underscore syntax:
 
 ```typescript
-// Search for persons living in 'New York'
+// Search for persons where address.city is 'New York'
 const results = await this.personRepo.search()
-  .where('address_city' as any).eq('New York')
+  .where('address_city' as any) // Use the flattened key
+  .eq('New York')
   .return.all();
 ```
 
@@ -164,6 +168,41 @@ await this.catRepo.save(id, sessionEntity);
 
 // Expire after 60 seconds
 await this.catRepo.expire(id, 60);
+```
+
+### 4. TLS Connection (Production / Cloud)
+
+For secure connections (e.g., AWS ElastiCache, Redis Cloud), use the `rediss://` protocol and provide TLS options in the `socket` configuration.
+
+**Static Configuration:**
+
+```typescript
+import * as fs from 'fs';
+
+RedisOmModule.forRoot({
+  url: 'rediss://your-redis-instance:6380',
+  socket: {
+    tls: true,
+    rejectUnauthorized: false, // Set to true if using a public CA
+    // ca: fs.readFileSync('path/to/ca.pem'), // Optional: Load custom CA
+  },
+})
+```
+
+**Async Configuration (e.g., using ConfigService):**
+
+```typescript
+RedisOmModule.forRootAsync({
+  imports: [ConfigModule],
+  inject: [ConfigService],
+  useFactory: (config: ConfigService) => ({
+    url: config.get('REDIS_URL'), // e.g., 'rediss://...'
+    socket: {
+      tls: true,
+      rejectUnauthorized: config.get('REDIS_TLS_REJECT_UNAUTHORIZED') === 'true',
+    },
+  }),
+})
 ```
 
 ## Features

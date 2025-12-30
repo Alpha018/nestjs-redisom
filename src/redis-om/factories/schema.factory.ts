@@ -6,7 +6,17 @@ import {
   REDIS_OM_PROP_METADATA,
 } from '../redis-om.constants';
 
+/**
+ * Factory class responsible for generating Redis OM Schemas from decorated classes.
+ * It handles metadata reflection, field mapping, and recursive schema generation for nested objects.
+ */
 export class SchemaFactory {
+  /**
+   * Creates a Redis OM Schema instance from a decorated class.
+   * @param target The class constructor decorated with @Schema.
+   * @returns A properly configured Schema instance.
+   * @throws Error if the class is missing the @Schema decorator.
+   */
   static createForClass(target: Type<any>): Schema {
     const schemaOptions = Reflect.getMetadata(REDIS_OM_SCHEMA_METADATA, target);
 
@@ -24,6 +34,9 @@ export class SchemaFactory {
     });
   }
 
+  /**
+   * Processes a single standard (non-nested) field and adds it to the schema definition.
+   */
   private static processStandardField(
     propertyKey: string,
     options: any,
@@ -48,6 +61,9 @@ export class SchemaFactory {
     schemaDefinition[fieldKey] = fieldDefinition;
   }
 
+  /**
+   * Recursively processes a nested class property, flattening it into the parent schema.
+   */
   private static processNestedClass(
     type: any,
     propertyKey: string,
@@ -72,6 +88,9 @@ export class SchemaFactory {
     );
   }
 
+  /**
+   * Routes property processing to either nested class handling or standard field handling.
+   */
   private static processProperty(
     prop: any,
     schemaDefinition: Record<string, any>,
@@ -100,8 +119,11 @@ export class SchemaFactory {
     }
   }
 
+  /**
+   * Iterates over decorated properties of a target class and populates the schema definition.
+   */
   private static buildSchemaProperties(
-    target: { new (...args: any[]): any },
+    target: { new(...args: any[]): any },
     schemaDefinition: Record<string, any>,
     pathPrefix = '$',
     keyPrefix = '',

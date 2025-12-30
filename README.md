@@ -12,6 +12,12 @@
   <a href="https://nestjs.com" target="_blank">
     <img src="https://img.shields.io/badge/built%20with-NestJs-red.svg" alt="Built with NestJS">
   </a>
+    <a href="https://github.com/Alpha018/nestjs-redisom/actions">
+    <img src="https://github.com/Alpha018/nestjs-redisom/actions/workflows/build.yml/badge.svg" alt="Test Status">
+  </a>
+  <a href="https://github.com/Alpha018/nestjs-redisom">
+    <img src="https://img.shields.io/github/stars/Alpha018/nestjs-redisom?style=social" alt="GitHub stars">
+  </a>
 </div>
 
 

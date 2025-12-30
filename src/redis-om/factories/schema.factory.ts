@@ -123,7 +123,7 @@ export class SchemaFactory {
    * Iterates over decorated properties of a target class and populates the schema definition.
    */
   private static buildSchemaProperties(
-    target: { new(...args: any[]): any },
+    target: { new (...args: any[]): any },
     schemaDefinition: Record<string, any>,
     pathPrefix = '$',
     keyPrefix = '',

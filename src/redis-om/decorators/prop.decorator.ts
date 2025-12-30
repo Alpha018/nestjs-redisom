@@ -34,8 +34,8 @@ export interface PropOptions {
  * Supported field types for Redis OM properties, including factories for nested schemas.
  */
 export type RedisOmFieldType =
-  | { (): { new(...args: any[]): any } } // Allow factory function
-  | { new(...args: any[]): any } // Allow class constructor for nested schema
+  | { (): { new (...args: any[]): any } } // Allow factory function
+  | { new (...args: any[]): any } // Allow class constructor for nested schema
   | 'string[]'
   | 'number[]'
   | 'boolean'

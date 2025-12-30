@@ -1,6 +1,6 @@
 {
   "name": "@alpha018/nestjs-redisom",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A NestJS module for RedisOM, providing a structured way to use Redis Stack JSON/Search features.",
   "author": "Tomás Alegre <tomas.sa467@gmail.com>",
   "readmeFilename": "README.md",

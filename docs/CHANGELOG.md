@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/Alpha018/nestjs-redisom/compare/v1.0.0...v1.0.1) (2025-12-30)
+
+
+### Bug Fixes
+
+* add comments to explain Redis OM decorators and utils ([7c145c0](https://github.com/Alpha018/nestjs-redisom/commit/7c145c0c89ba344e331c1b554e78a4a45d86af71))
+
 # 1.0.0 (2025-12-29)
 
 

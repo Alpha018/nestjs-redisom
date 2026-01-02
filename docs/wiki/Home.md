@@ -35,23 +35,23 @@ This library bridges the gap between **NestJS**'s structured, dependency-injecti
 
 *Core concepts for building applications.*
 
-* **[Configuration](usage/Configuration.md)**: connection setup, TLS, and Cluster options.
-* **[Defining Structures](usage/Defining-Structures.md)**: Modeling data with Nested objects, Arrays, Schemas, and **TTL**.
-* **[Advanced Searching](usage/Searching.md)**: Chained queries, Numeric Ranges, and Full-Text search.
-* **[Multi-Tenancy](usage/Multi-Tenancy.md)**: Building SaaS platforms with isolated tenant data.
+* **[Configuration](./usage/Configuration.md)**: connection setup, TLS, and Cluster options.
+* **[Defining Structures](./usage/Defining-Structures.md)**: Modeling data with Nested objects, Arrays, Schemas, and **TTL**.
+* **[Advanced Searching](./usage/Searching.md)**: Chained queries, Numeric Ranges, and Full-Text search.
+* **[Multi-Tenancy](./usage/Multi-Tenancy.md)**: Building SaaS platforms with isolated tenant data.
 
 ### Design Patterns
 
 *Recommended architectural patterns for robust applications.*
 
-* **[Environment Validation](patterns/Environment-Validation.md)**: Enforcing fail-safe configuration at startup.
-* **[Configuration Service](patterns/Configuration-Service.md)**: Abstracting type-safe configuration access.
+* **[Environment Validation](./patterns/Environment-Validation.md)**: Enforcing fail-safe configuration at startup.
+* **[Configuration Service](./patterns/Configuration-Service.md)**: Abstracting type-safe configuration access.
 
 ### Development
 
 *For contributors and maintainers.*
 
-* **[Development Guide](development/Development-Guide.md)**: Docker Compose setup, Testing strategies, and Contribution workflow.
+* **[Development Guide](./development/Development-Guide.md)**: Docker Compose setup, Testing strategies, and Contribution workflow.
 
 ---
 

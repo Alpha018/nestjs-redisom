@@ -20,7 +20,7 @@ const users = await userRepo.search()
 
 ## 2. Searching Nested Fields
 
-As documented in [Defining Structures](Defining-Structures.md), nested fields are flattened in the schema using underscores.
+As documented in [Defining Structures](./Defining-Structures.md), nested fields are flattened in the schema using underscores.
 
 **Example: Find users living in 'New York'.**
 

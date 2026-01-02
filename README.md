@@ -18,20 +18,23 @@
   <a href="https://github.com/Alpha018/nestjs-redisom">
     <img src="https://img.shields.io/github/stars/Alpha018/nestjs-redisom?style=social" alt="GitHub stars">
   </a>
+  <a href="https://www.buymeacoffee.com/alpha018" target="_blank">
+    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="20px">
+  </a>
 </div>
-
 
 ## Description
 
 This library seamlessly integrates [RedisOM](https://redis.io/docs/latest/integrate/redisom-for-node-js/) into NestJS, offering:
--   **Decorator-based Schema Definition**: Define your entities using `@Schema` and `@Prop`.
--   **Repository Injection**: Inject repositories directly into your services using `@InjectRepository`.
--   **Seamless Connection**: Configure your Redis connection globally with `forRoot` or `forRootAsync`.
+
+- **Decorator-based Schema Definition**: Define your entities using `@Schema` and `@Prop`.
+- **Repository Injection**: Inject repositories directly into your services using `@InjectRepository`.
+- **Seamless Connection**: Configure your Redis connection globally with `forRoot` or `forRootAsync`.
 
 ## Installation
 
 ```bash
-$ npm install nestjs-redisom redis-om redis
+npm install nestjs-redisom redis-om redis
 ```
 
 ## Quick Start
@@ -213,17 +216,19 @@ RedisOmModule.forRootAsync({
 
 ## Features
 
--   **Schema Factory**: Automatically generates RedisOM schemas from your class metadata.
--   **Nested Objects**: Support for typed nested objects with automatic schema flattening.
--   **Async Configuration**: Supports `useFactory`, `useClass`, and `useExisting` for configuration.
--   **Validation**: Compatible with `class-validator` (standard NestJS practice).
+- **Schema Factory**: Automatically generates RedisOM schemas from your class metadata.
+- **Nested Objects**: Support for typed nested objects with automatic schema flattening.
+- **Async Configuration**: Supports `useFactory`, `useClass`, and `useExisting` for configuration.
+- **Validation**: Compatible with `class-validator` (standard NestJS practice).
 
 ## Performance & Search Mechanics
 
 This library leverages **RediSearch** (module of Redis Stack), meaning searches are **efficient and non-blocking**.
 
 ### 1. How Search Works
+
 When you use `@Prop({ indexed: true })`, Redis OM creates an **Inverted Index**.
+
 - **Search**: `repo.search()...` queries this index directly. It does **NOT** perform a linear scan (SCAN command) over the keyspace.
 - **Complexity**: Searches are typically **O(K)** (where K is the number of results) or **O(log N)** for range queries. Retrieving by ID is **O(1)**.
 
@@ -238,6 +243,7 @@ When you use `@Prop({ indexed: true })`, Redis OM creates an **Inverted Index**.
 | **Geo** | Radius / Polygon | **O(K + log N)** | Geospacial indexing. |
 
 ### 2. Resource Usage
+
 - **Memory (RAM)**: Indexes consume additional memory. **Best Practice:** Only index fields that you intend to filter by.
 - **CPU**: Search operations are highly optimized. Initial indexing of a large existing dataset may temporarily consume CPU, but incremental updates (`save`) are lightweight.
 
@@ -245,8 +251,8 @@ When you use `@Prop({ indexed: true })`, Redis OM creates an **Inverted Index**.
 
 Check out a few resources that may come in handy when working with NestJS:
 
--   Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
--   Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
+- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
+- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
 
 ## Support
 
@@ -254,7 +260,7 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 
 ## Stay in touch
 
--   Author - [Tomás Alegre](https://github.com/Alpha018)
+- Author - [Tomás Alegre](https://github.com/Alpha018)
 
 ## License
 

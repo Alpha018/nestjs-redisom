@@ -2,7 +2,7 @@
 
 For scalable and maintainable NestJS applications, we strongly recommend abstracting the standard `ConfigService` behind a custom, type-safe provider.
 
-> **Prerequisite**: This pattern works best when paired with rigorous **[Environment Validation](./Environment-Validation.md)**. Validation ensures the raw data exists; this service ensures it is consumed correctly.
+> **Prerequisite**: This pattern works best when paired with rigorous **[[Environment Validation|Environment-Validation]]**. Validation ensures the raw data exists; this service ensures it is consumed correctly.
 
 ## Why Abstract Configuration?
 

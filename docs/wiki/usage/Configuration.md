@@ -46,8 +46,8 @@ RedisOmModule.forRootAsync({
 })
 ```
 
-> **Tip**: For advanced environment validation (e.g. using `class-validator` to ensure all these variables exist), see **[Patterns: Environment Validation](../patterns/Environment-Validation.md)**.
-> **Tip**: To abstract these string keys into a type-safe service, see **[Patterns: Configuration Service](../patterns/Configuration-Service.md)**.
+> **Tip**: For advanced environment validation (e.g. using `class-validator` to ensure all these variables exist), see **[[Environment Validation|Environment-Validation]]**.
+> **Tip**: To abstract these string keys into a type-safe service, see **[[Configuration Service|Configuration-Service]]**.
 
 ## Redis Cluster
 

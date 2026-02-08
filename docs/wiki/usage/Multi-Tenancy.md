@@ -4,13 +4,13 @@ This section describes robust patterns for handling multi-tenant applications an
 
 ## 1. Environment Validation
 
-For robust environment validation strategies (e.g. using `class-validator`), please refer to the **[Patterns: Environment Validation](../patterns/Environment-Validation.md)** section.
+For robust environment validation strategies (e.g. using `class-validator`), please refer to the **[[Environment Validation|Environment-Validation]]** section.
 
 ---
 
 ## 2. Abstracting Configuration Service
 
-For improved type safety and cleaner code, we recommend abstracting your `ConfigService` usage. See **[Patterns: Configuration Service](../patterns/Configuration-Service.md)**.
+For improved type safety and cleaner code, we recommend abstracting your `ConfigService` usage. See **[[Configuration Service|Configuration-Service]]**.
 
 ---
 

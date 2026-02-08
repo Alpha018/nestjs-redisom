@@ -34,7 +34,7 @@ This library seamlessly integrates [RedisOM](https://redis.io/docs/latest/integr
 ## Installation
 
 ```bash
-npm install nestjs-redisom redis-om redis
+npm install @alpha018/nestjs-redisom redis-om redis
 ```
 
 ## Quick Start

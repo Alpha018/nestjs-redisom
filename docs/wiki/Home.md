@@ -27,6 +27,14 @@ This library bridges the gap between **NestJS**'s structured, dependency-injecti
 2. **Eventual Consistency**: RediSearch indexes are updated asynchronously. A document written *now* might not appear in a search query *1ms later*.
 3. **No Relations**: This is a Document Query Engine, not a Relational Database. There are no JOINs.
 
+## 📦 Installation
+
+To start using `nestjs-redisom` in your project:
+
+```bash
+npm install @alpha018/nestjs-redisom redis-om redis
+```
+
 ---
 
 ## 📚 Wiki Index
@@ -35,23 +43,23 @@ This library bridges the gap between **NestJS**'s structured, dependency-injecti
 
 *Core concepts for building applications.*
 
-* **[Configuration](./usage/Configuration.md)**: connection setup, TLS, and Cluster options.
-* **[Defining Structures](./usage/Defining-Structures.md)**: Modeling data with Nested objects, Arrays, Schemas, and **TTL**.
-* **[Advanced Searching](./usage/Searching.md)**: Chained queries, Numeric Ranges, and Full-Text search.
-* **[Multi-Tenancy](./usage/Multi-Tenancy.md)**: Building SaaS platforms with isolated tenant data.
+* [[Configuration|Configuration]]
+* [[Defining Structures|Defining-Structures]]
+* [[Advanced Searching|Searching]]
+* [[Multi-Tenancy|Multi-Tenancy]]
 
 ### Design Patterns
 
 *Recommended architectural patterns for robust applications.*
 
-* **[Environment Validation](./patterns/Environment-Validation.md)**: Enforcing fail-safe configuration at startup.
-* **[Configuration Service](./patterns/Configuration-Service.md)**: Abstracting type-safe configuration access.
+* [[Environment Validation|Environment-Validation]]
+* [[Configuration Service|Configuration-Service]]
 
 ### Development
 
 *For contributors and maintainers.*
 
-* **[Development Guide](./development/Development-Guide.md)**: Docker Compose setup, Testing strategies, and Contribution workflow.
+* [[Development Guide|Development-Guide]]
 
 ---
 

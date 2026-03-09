@@ -5,3 +5,4 @@ export * from './redis-om/redis-om-core.module';
 export * from './redis-om/common/base.entity';
 export * from './redis-om/redis-om.module';
 export * from './redis-om/interfaces';
+export * from './redis-om/errors';

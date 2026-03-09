@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 services:
   redis-stack:
     image: redis/redis-stack:latest
@@ -8,10 +8,20 @@ services:
   redis:
     image: redis:7-alpine
     container_name: redis-tls-redisom
-    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
     ports:
       - "6380:6379"
     volumes:
       - ./redis-tls/conf/redis.conf:/usr/local/etc/redis/redis.conf:ro
       - ./redis-tls/certs:/certs:ro
+    restart: unless-stopped
+
+  redis-cluster:
+    image: grokzen/redis-cluster:latest
+    ports:
+      - "8000-8005:7000-7005"
+    environment:
+      - REDIS_DEFAULT_PASSWORD=password
+      - INITIAL_PORT=7000
+      - IP=0.0.0.0
     restart: unless-stopped

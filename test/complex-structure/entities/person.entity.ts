@@ -16,7 +16,7 @@ export class PersonEntity extends BaseEntity {
   [key: string]: any;
 
   @Prop({ type: () => Address })
-  address: Address;
+  homeAddress: Address;
 
   @Prop({ indexed: true })
   name: string;

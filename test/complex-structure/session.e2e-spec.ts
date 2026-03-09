@@ -1,24 +1,29 @@
 import { TestingModule, Test } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { Repository } from 'redis-om';
-import * as dotenv from 'dotenv';
 
 import { getRepositoryToken } from '../../src/redis-om/common/redis-om.utils';
+import { isRedisStackAvailable, flushRedisWithConfig } from '../test-utils';
 import { SessionEntity } from './entities/session.entity';
 import { RedisOmModule, BaseEntity } from '../../src';
-
-dotenv.config({ path: '.env.test' });
+import { getRedisTestConfig } from '../e2e-config';
 
 describe('SessionEntity (Multiple Indexes & TTL)', () => {
   let app: INestApplication;
   let sessionRepo: Repository<SessionEntity>;
+  let redisStackAvailable = true;
 
   beforeAll(async () => {
+    const config = getRedisTestConfig();
+
+    redisStackAvailable = await isRedisStackAvailable(config);
+    if (!redisStackAvailable) return;
+
+    await flushRedisWithConfig(config);
+
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [
-        RedisOmModule.forRoot({
-          url: process.env.REDIS_URL,
-        }),
+        RedisOmModule.forRoot(config),
         RedisOmModule.forFeature([SessionEntity]),
       ],
     }).compile();
@@ -29,14 +34,6 @@ describe('SessionEntity (Multiple Indexes & TTL)', () => {
     sessionRepo = moduleFixture.get<Repository<SessionEntity>>(
       getRepositoryToken(SessionEntity),
     );
-
-    try {
-      await sessionRepo.dropIndex();
-    } catch {
-      // ignore
-    }
-
-    await sessionRepo.createIndex();
   });
 
   afterAll(async () => {
@@ -44,7 +41,7 @@ describe('SessionEntity (Multiple Indexes & TTL)', () => {
   });
 
   it('should demonstrate search with multiple fields', async () => {
-    // Cleanup or use unique ID
+    if (!redisStackAvailable) return;
     const uniqueUserId = 'user_123_' + Date.now();
     const session = new SessionEntity();
     session.userId = uniqueUserId;
@@ -56,8 +53,7 @@ describe('SessionEntity (Multiple Indexes & TTL)', () => {
     await sessionRepo.save(session);
     await new Promise((r) => setTimeout(r, 1500));
 
-    // Search using AND condition on multiple fields
-    const results = await sessionRepo
+    const result = await sessionRepo
       .search()
       .where('userId')
       .eq(uniqueUserId)
@@ -67,11 +63,12 @@ describe('SessionEntity (Multiple Indexes & TTL)', () => {
       .eq('device_ABC')
       .return.all();
 
-    expect(results.length).toBe(1);
-    expect(results[0].userId).toBe(uniqueUserId);
+    expect(result.length).toBe(1);
+    expect(result[0].userId).toBe(uniqueUserId);
   });
 
   it('should expire entity after TTL', async () => {
+    if (!redisStackAvailable) return;
     const session = new SessionEntity();
     session.userId = 'temp_user';
     session.isActive = true;
@@ -80,23 +77,18 @@ describe('SessionEntity (Multiple Indexes & TTL)', () => {
     const id = BaseEntity.getId(saved);
     expect(id).toBeDefined();
 
-    // Verify it exists
-    let found = await sessionRepo.fetch(id!);
-    expect(found.userId).toBe('temp_user');
+    const beforeExp = await sessionRepo.fetch(id!);
+    expect(beforeExp.userId).toBe('temp_user');
 
-    // Set TTL to 2 seconds
     await sessionRepo.expire(id!, 2);
 
-    // Wait for 3 seconds
-    await new Promise((r) => setTimeout(r, 3000));
+    await new Promise((resolve) => setTimeout(resolve, 3000));
 
-    // Verify it is gone
-    found = await sessionRepo.fetch(id!);
+    const afterExp = await sessionRepo.fetch(id!);
 
-    // Check for absence of data (null or empty object)
-    const keys = Object.keys(found || {});
-    if (found && keys.length > 0) {
-      expect(found.userId).toBeUndefined();
+    const keys = Object.keys(afterExp || {});
+    if (afterExp && keys.length > 0) {
+      expect(afterExp.userId).toBeUndefined();
     }
   }, 10000);
 });

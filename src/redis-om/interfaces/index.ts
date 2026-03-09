@@ -1,5 +1,5 @@
+import { RedisClusterOptions, RedisClientOptions } from 'redis';
 import { ModuleMetadata, Type } from '@nestjs/common';
-import { RedisClientOptions } from 'redis';
 
 /**
  * Options for configuring Redis OM Module asynchronously.
@@ -46,6 +46,7 @@ export interface RedisOmOptionsFactory {
 }
 
 /**
- * Configuration options for the Redis OM Module, alias for RedisClientOptions.
+ * Configuration options for the Redis OM Module.
+ * Supports both standalone (RedisClientOptions) and cluster (RedisClusterOptions) modes.
  */
-export type RedisOmModuleOptions = RedisClientOptions;
+export type RedisOmModuleOptions = RedisClusterOptions | RedisClientOptions;

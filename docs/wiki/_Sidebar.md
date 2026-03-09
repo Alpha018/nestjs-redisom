@@ -1,3 +1,5 @@
+# Navigation
+
 * [[Home]]
 
 ### Usage
@@ -6,6 +8,7 @@
 * [[Defining Structures|Defining-Structures]]
 * [[Searching|Searching]]
 * [[Multi Tenancy|Multi-Tenancy]]
+* [[Error Handling|Error-Handling]]
 
 ### Patterns
 

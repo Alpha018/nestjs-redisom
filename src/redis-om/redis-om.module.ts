@@ -1,5 +1,5 @@
-import { DynamicModule, Provider, Module } from '@nestjs/common';
-import { Type } from '@nestjs/common';
+import { DynamicModule, Provider, Module, Type } from '@nestjs/common';
+import { RedisClusterType, RedisClientType } from 'redis';
 
 import {
   getConnectionToken,
@@ -96,17 +96,60 @@ export class RedisOmModule {
   }
 }
 
-import { Repository } from 'redis-om';
+import { RedisConnection, Repository } from 'redis-om';
+
+import {
+  RedisOmIndexCreationFailedException,
+  RedisOmIndexAlreadyExistsException,
+  RedisOmUnsupportedCommandException,
+  RedisOmException,
+} from './errors';
+
+/**
+ * Exception classes that represent known, ignorable conditions during index creation.
+ * Add new entries here to extend coverage without changing the classification logic.
+ */
+const IGNORABLE_INDEX_ERRORS = [
+  RedisOmIndexAlreadyExistsException,
+  RedisOmUnsupportedCommandException,
+] as const;
 
 function createRedisOmProvider(model: Type<any>): Provider {
   return {
-    useFactory: async (client: any) => {
+    useFactory: async (client: RedisClusterType | RedisClientType) => {
       const schema = SchemaFactory.createForClass(model);
-      const repository = new Repository(schema, client);
-      await repository.createIndex(); // Ensure index exists
+      const repository = new Repository(
+        schema,
+        client as unknown as RedisConnection,
+      );
+
+      try {
+        await repository.createIndex();
+      } catch (error: unknown) {
+        const known = classifyIndexError(error);
+        if (known === null) {
+          // Unknown error — wrap and rethrow with the original as cause
+          throw new RedisOmIndexCreationFailedException(error);
+        }
+        // Known ignorable conditions (IndexAlreadyExists / UnsupportedCommand)
+        // We swallow these quietly. If the RediSearch module is missing,
+        // basic KV operations will still work; if the index exists, we're good to go.
+      }
+
       return repository;
     },
     provide: getRepositoryToken(model),
     inject: [getConnectionToken()],
   };
+}
+
+/**
+ * Identifies whether the raw error thrown by `repository.createIndex()` is a
+ * known ignorable condition. Returns an instance of the matched exception type
+ * (with the original as `cause`), or `null` if the error must be re-thrown.
+ */
+function classifyIndexError(error: unknown): RedisOmException | null {
+  const msg = error instanceof Error ? error.message : String(error);
+  const Match = IGNORABLE_INDEX_ERRORS.find((E) => E.matches(msg));
+  return Match ? new Match(error) : null;
 }

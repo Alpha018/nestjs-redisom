@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/Alpha018/nestjs-redisom/compare/v1.0.2...v1.1.0) (2026-03-11)
+
+
+### Features
+
+* **cluster:** integrate Redis Cluster support, strict typings, and unified error handling ([994c3e9](https://github.com/Alpha018/nestjs-redisom/commit/994c3e9d77c3d5458ff88fa53a67f49168b1e2c1))
+
 ## [1.0.2](https://github.com/Alpha018/nestjs-redisom/compare/v1.0.1...v1.0.2) (2026-01-02)
 
 

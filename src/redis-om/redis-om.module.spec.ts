@@ -6,7 +6,7 @@ import { getConnectionToken } from './common/redis-om.utils';
 import { RedisOmCoreModule } from './redis-om-core.module';
 import { RedisOmModuleOptions } from './interfaces';
 import { RedisOmModule } from './redis-om.module';
-dotenv.config({ path: '.env.test' });
+dotenv.config({ path: '.env.test', quiet: true } as any);
 
 // Mock Redis client
 jest.mock('redis', () => ({

@@ -47,6 +47,7 @@ npm install @alpha018/nestjs-redisom redis-om redis
 * [[Defining Structures|Defining-Structures]]
 * [[Advanced Searching|Searching]]
 * [[Multi-Tenancy|Multi-Tenancy]]
+* [[Error Handling|Error-Handling]]
 
 ### Design Patterns
 

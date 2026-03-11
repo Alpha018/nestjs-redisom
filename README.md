@@ -58,6 +58,8 @@ export class CatEntity extends BaseEntity {
 }
 ```
 
+> **Note**: For all available property decorators, indexing options, and schema definitions, see the [Wiki: Defining Structures](https://github.com/Alpha018/nestjs-redisom/wiki/Defining-Structures).
+
 ### 2. Import the Module
 
 Register `RedisOmModule` in your root `AppModule` and register your entities with `forFeature`.
@@ -77,6 +79,8 @@ import { CatEntity } from './cat.entity';
 })
 export class AppModule {}
 ```
+
+> **Note**: For advanced connection setups, environmental validation, and asynchronous options, see the [Wiki: Configuration](https://github.com/Alpha018/nestjs-redisom/wiki/Configuration).
 
 ### 3. Usage in a Service
 
@@ -106,6 +110,8 @@ export class CatsService {
   }
 }
 ```
+
+> **Note**: To learn about all search capabilities and query building, see the [Wiki: Searching](https://github.com/Alpha018/nestjs-redisom/wiki/Searching).
 
 ## Advanced Usage
 
@@ -153,6 +159,8 @@ const results = await this.personRepo.search()
   .return.all();
 ```
 
+> **Note**: Discover more about embedded objects and array structures in the [Wiki: Defining Structures](https://github.com/Alpha018/nestjs-redisom/wiki/Defining-Structures).
+
 ### 2. Custom IDs
 
 You can explicitly set the ID when saving an entity if you don't want to use the auto-generated ULID. This is useful for using existing IDs (like UUIDs, emails, or external system IDs).
@@ -167,6 +175,8 @@ await this.catRepo.save(id, entity);
 await this.catRepo.save('unique-custom-id', entity);
 ```
 
+> **Note**: Read more about identifier strategies in the [Wiki: Defining Structures](https://github.com/Alpha018/nestjs-redisom/wiki/Defining-Structures).
+
 ### 3. TTL (Time To Live)
 
 You can set an expiration time (in seconds) for an entity. The key will automatically be deleted from Redis after the specified time.
@@ -178,6 +188,8 @@ await this.catRepo.save(id, sessionEntity);
 // Expire after 60 seconds
 await this.catRepo.expire(id, 60);
 ```
+
+> **Note**: See entity expiration patterns in the [Wiki: Defining Structures](https://github.com/Alpha018/nestjs-redisom/wiki/Defining-Structures).
 
 ### 4. TLS Connection (Production / Cloud)
 
@@ -213,6 +225,28 @@ RedisOmModule.forRootAsync({
   }),
 })
 ```
+
+> **Note**: Find more cloud connection examples in the [Wiki: Configuration](https://github.com/Alpha018/nestjs-redisom/wiki/Configuration).
+
+### 5. Redis Cluster (Cluster Mode Enabled)
+
+`nestjs-redisom` natively supports connecting to a Redis Cluster using the underlying `createCluster` functionality of Node-Redis.
+
+Instead of providing a single `url`, you provide an array of `rootNodes`:
+
+```typescript
+RedisOmModule.forRoot({
+  rootNodes: [
+    { url: 'redis://redis-cluster-node-1:7000' },
+    { url: 'redis://redis-cluster-node-2:7000' }
+  ],
+  defaults: {
+    password: 'your-cluster-password'
+  }
+})
+```
+
+> **Note**: For full details on how the Node-Redis client uses these initial nodes for cluster auto-discovery (`CLUSTER SLOTS`), please refer to the [Configuration Wiki](https://github.com/Alpha018/nestjs-redisom/wiki/Configuration).
 
 ## Features
 

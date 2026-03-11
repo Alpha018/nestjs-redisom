@@ -4,8 +4,14 @@ import {
   Provider,
   Global,
   Module,
+  Inject,
 } from '@nestjs/common';
-import { createClient } from 'redis';
+import {
+  RedisClusterType,
+  RedisClientType,
+  createCluster,
+  createClient,
+} from 'redis';
 
 import { RedisOmModuleAsyncOptions, RedisOmModuleOptions } from './interfaces';
 import { REDIS_OM_MODULE_OPTIONS } from './redis-om.constants';
@@ -20,6 +26,11 @@ import { getConnectionToken } from './common/redis-om.utils';
 @Module({})
 @Global()
 export class RedisOmCoreModule implements OnApplicationShutdown {
+  constructor(
+    @Inject(getConnectionToken())
+    private readonly redisClient: RedisClusterType | RedisClientType,
+  ) {}
+
   /**
    * Asynchronously creates the Global Redis Connection provider.
    * This module is `@Global()`, so the connection will be available application-wide.
@@ -37,13 +48,13 @@ export class RedisOmCoreModule implements OnApplicationShutdown {
         ...asyncProviders,
         {
           useFactory: async (opt: RedisOmModuleOptions) => {
-            const redisInfo = opt.url ? { ...opt } : opt;
-            const redisClient = createClient(redisInfo);
+            const redisClient = (opt as any).rootNodes
+              ? createCluster(opt as any)
+              : createClient(opt as any);
             await redisClient.connect();
-
             return redisClient;
           },
-          inject: [REDIS_OM_MODULE_OPTIONS], // Injected from createAsyncProviders
+          inject: [REDIS_OM_MODULE_OPTIONS],
           provide: getConnectionToken(),
         },
       ],
@@ -65,10 +76,10 @@ export class RedisOmCoreModule implements OnApplicationShutdown {
   static forRoot(options: RedisOmModuleOptions): DynamicModule {
     const redisOmConnectionProvider: Provider = {
       useFactory: async () => {
-        const redisInfo = options.url ? { ...options } : options;
-        const redisClient = createClient(redisInfo);
+        const redisClient = (options as any).rootNodes
+          ? createCluster(options as any)
+          : createClient(options as any);
         await redisClient.connect();
-
         return redisClient;
       },
       provide: getConnectionToken(),
@@ -96,5 +107,18 @@ export class RedisOmCoreModule implements OnApplicationShutdown {
     return [];
   }
 
-  async onApplicationShutdown() {}
+  async onApplicationShutdown() {
+    try {
+      const isOpen = this.redisClient?.isOpen;
+      const isReady =
+        'isReady' in this.redisClient
+          ? (this.redisClient as any).isReady
+          : false;
+      if (isOpen || isReady) {
+        await this.redisClient.quit();
+      }
+    } catch {
+      // Ignore errors during shutdown
+    }
+  }
 }

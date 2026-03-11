@@ -22,14 +22,16 @@ This section is for contributors who want to modify the library, run tests, or d
     npm install
     ```
 
-3. **Start Redis Stack**
-    We provide a `docker-compose.yml` to spin up a Redis Stack instance (with RediSearch and RedisJSON).
+3. **Start Redis Infrastructure**
+    We provide a `docker-compose.yml` to spin up both a standalone Redis Stack instance (with RediSearch and RedisJSON) and a functional Redis Cluster.
 
     ```bash
     docker-compose up -d
     ```
 
-    This will start Redis on port `6379`.
+    This will start:
+    - Standalone Redis Stack on port `6379`.
+    - Redis Cluster nodes on ports `7000-7005` (natively mapped).
 
 ## Running Tests
 
@@ -54,6 +56,19 @@ If you want to run a specific E2E test file:
 ```bash
 npx jest test/complex-structure/auth-session.e2e-spec.ts --config ./test/jest-e2e.json
 ```
+
+### Cluster E2E Tests
+
+The repository is fully equipped to run E2E tests against a local Redis Cluster to ensure feature parity.
+
+1. **Ensure the cluster is running** (the `redis-cluster` container from `docker-compose up -d`).
+2. **Run cluster tests**:
+
+```bash
+npm run test:e2e:cluster
+```
+
+> **Port Mapping Note**: To prevent potential host port conflicts (e.g., port `7000` being reserved on certain OS environments), the test suite transparently remaps the announced cluster topology (`700X`) to the host-bound ports (`800X`) defined in `docker-compose.yml`. This ensures E2E testing traffic correctly routes into the Docker containers without timeouts.
 
 ## Workflow for Contributors
 

@@ -51,6 +51,58 @@ RedisOmModule.forRootAsync({
 
 ## Redis Cluster
 
-> **Note**: `nestjs-redisom` currently uses the standard `createClient` method from `node-redis`, which is designed for standalone or sentinel setups. Native `createCluster` support is not yet exposed via the module options.
+`nestjs-redisom` supports full Cluster Mode Enabled deployments via the underlying `node-redis` library's `createCluster` method.
 
-If you are using a Cluster-enabled provider (like AWS ElastiCache with Cluster Mode Disabled, or a proxy like Envoy), the standard connection above works fine. For full Cluster Mode Enabled support, the library requires an update to use `createCluster`.
+To connect to a Redis Cluster, provide an array of `rootNodes` instead of a single `url`:
+
+```typescript
+RedisOmModule.forRoot({
+  rootNodes: [
+    { url: 'redis://redis-cluster-node-1:7000' },
+    { url: 'redis://redis-cluster-node-2:7000' },
+    { url: 'redis://redis-cluster-node-3:7000' }
+  ],
+  defaults: {
+    password: 'your-cluster-password',
+    socket: {
+      connectTimeout: 10000
+    }
+  }
+})
+```
+
+### Auto-Discovery (Slot Topology)
+
+You do not need to list every single node in the cluster in your `rootNodes` array. The client uses these initial nodes simply as entry points to connect to the cluster. Upon successful connection, it will automatically execute the `CLUSTER SLOTS` command to discover the full topology.
+
+This auto-discovery mechanism means:
+
+1. It automatically discovers all primary (master) and replica nodes.
+2. It understands exactly which hash slots (0-16383) are served by which nodes.
+3. It seamlessly routes your module commands to the correct nodes based on the key's hash slot.
+4. If the cluster topology changes (e.g., a failover occurs or a scaling event happens), the client natively handles cluster redirects (`MOVED`, `ASK`) and refreshes its internal slot map automatically.
+
+Usually, providing 2 or 3 geographically distributed nodes from the cluster in your `rootNodes` is sufficient to guarantee an initial connection.
+
+### Async Configuration with Cluster
+
+When using `ConfigService` to dynamically load cluster nodes from an environment variable (e.g., `REDIS_CLUSTER_NODES=redis://node1:7000,redis://node2:7000`):
+
+```typescript
+// app.module.ts
+RedisOmModule.forRootAsync({
+  imports: [ConfigModule],
+  inject: [ConfigService],
+  useFactory: (config: ConfigService) => {
+    const nodesString = config.get<string>('REDIS_CLUSTER_NODES') || '';
+    const rootNodes = nodesString.split(',').map(url => ({ url }));
+
+    return {
+      rootNodes,
+      defaults: {
+        password: config.get('REDIS_CLUSTER_PASSWORD')
+      }
+    };
+  }
+})
+```

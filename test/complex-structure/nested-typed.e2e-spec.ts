@@ -1,25 +1,36 @@
 import { TestingModule, Test } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { Repository } from 'redis-om';
-import { v4 as uuidv4 } from 'uuid';
-import * as dotenv from 'dotenv';
 
+import {
+  isRedisStackAvailable,
+  flushRedisWithConfig,
+  setupTestIndex,
+} from '../test-utils';
 import { getRepositoryToken } from '../../src/redis-om/common/redis-om.utils';
 import { PersonEntity, Address } from './entities/person.entity';
 import { RedisOmModule, BaseEntity } from '../../src';
 import { getRedisTestConfig } from '../e2e-config';
-import { setupTestIndex } from '../test-utils';
-
-dotenv.config({ path: '.env.test' });
 
 describe('Typed Nested Objects (E2E)', () => {
   let app: INestApplication;
   let repo: Repository<PersonEntity>;
+  let redisStackAvailable = true;
 
   beforeAll(async () => {
+    // macOS TCP cooldown for local nodeAddressMap sequences
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    const config = getRedisTestConfig();
+
+    redisStackAvailable = await isRedisStackAvailable(config);
+
+    // Cleanup Redis before app init to avoid deleting indices created during init
+    await flushRedisWithConfig(config);
+
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [
-        RedisOmModule.forRoot(getRedisTestConfig()),
+        RedisOmModule.forRoot(config),
         RedisOmModule.forFeature([PersonEntity]),
       ],
     }).compile();
@@ -39,49 +50,32 @@ describe('Typed Nested Objects (E2E)', () => {
   });
 
   it('should save and search nested typed object', async () => {
-    console.log('Running modified TLS verification test');
-    const id = uuidv4();
+    if (!redisStackAvailable) return;
     const person = new PersonEntity();
-    person.name = 'John Doe';
-    person.address = new Address();
-    person.address.street = '123 Main St';
-    person.address.city = 'New York';
-    person.address.zip = '10001';
+    person.name = 'Alice';
+    person.age = 30;
 
-    await repo.save(id, person);
+    const addr = new Address();
+    addr.street = '123 Main St';
+    addr.city = 'Wonderland';
+    person.homeAddress = addr;
 
-    // Fetch to verify structure
-    const fetched = await repo.fetch(id);
-    expect(fetched.name).toBe('John Doe');
-    expect(fetched.address).toBeDefined();
-    // Redis OM fetches plain objects usually
-    expect(fetched.address.city).toBe('New York');
+    const saved = await repo.save(person);
+    const id = BaseEntity.getId(saved);
+    expect(id).toBeDefined();
 
-    // Wait for index
-    await new Promise((r) => setTimeout(r, 2000));
+    await new Promise((r) => setTimeout(r, 1500));
 
-    try {
-      // Search by Nested Field
-      // The factory should have generated field 'address_city' mapped to $.address.city
-      // Casting to any because 'address_city' is dynamic and not in PersonEntity types
-      const results = await repo
-        .search()
-        .where('address_city' as any)
-        .eq('New York')
-        .return.all();
+    // Search by nested field
+    const results = await repo
+      .search()
+      .where('homeAddress_city')
+      .eq('Wonderland')
+      .return.all();
 
-      expect(results.length).toBeGreaterThan(0);
-      const match = results.find((r) => BaseEntity.getId(r) === id);
-      expect(match).toBeDefined();
-      if (match) {
-        expect(match.address.city).toBe('New York');
-      }
-    } catch (e: any) {
-      if (e.message?.includes('unknown command')) {
-        console.warn('RediSearch not available, skipping search verification');
-      } else {
-        throw e;
-      }
-    }
+    expect(results.length).toBeGreaterThan(0);
+    const found = results.find((p) => BaseEntity.getId(p) === id);
+    expect(found).toBeDefined();
+    expect(found?.homeAddress?.city).toBe('Wonderland');
   });
 });

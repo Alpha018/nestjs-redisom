@@ -3,23 +3,29 @@ import { INestApplication } from '@nestjs/common';
 import { faker } from '@faker-js/faker';
 import { Repository } from 'redis-om';
 import { v4 as uuidv4 } from 'uuid';
-import * as dotenv from 'dotenv';
 
 import { getRepositoryToken } from '../../src/redis-om/common/redis-om.utils';
+import { isRedisStackAvailable, flushRedisWithConfig } from '../test-utils';
 import { AuthSessionEntity } from './entities/auth-session.entity';
 import { RedisOmModule, BaseEntity } from '../../src';
 import { getRedisTestConfig } from '../e2e-config';
 
-dotenv.config({ path: '.env.test' });
-
 describe('AuthSessionEntity (Complex E2E)', () => {
   let app: INestApplication;
   let sessionRepo: Repository<AuthSessionEntity>;
+  let redisStackAvailable = true;
 
   beforeAll(async () => {
+    const config = getRedisTestConfig();
+
+    redisStackAvailable = await isRedisStackAvailable(config);
+    if (!redisStackAvailable) return;
+
+    await flushRedisWithConfig(config);
+
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [
-        RedisOmModule.forRoot(getRedisTestConfig()),
+        RedisOmModule.forRoot(config),
         RedisOmModule.forFeature([AuthSessionEntity]),
       ],
     }).compile();
@@ -30,21 +36,6 @@ describe('AuthSessionEntity (Complex E2E)', () => {
     sessionRepo = moduleFixture.get<Repository<AuthSessionEntity>>(
       getRepositoryToken(AuthSessionEntity),
     );
-
-    try {
-      await sessionRepo.dropIndex();
-    } catch {
-      // ignore
-    }
-    try {
-      await sessionRepo.createIndex();
-    } catch (e: any) {
-      if (e.message?.includes('unknown command')) {
-        console.warn(
-          'Skipping index creation checks, RediSearch not available',
-        );
-      }
-    }
   });
 
   afterAll(async () => {
@@ -52,6 +43,7 @@ describe('AuthSessionEntity (Complex E2E)', () => {
   });
 
   it('should save and retrieve session with UUID v4 key', async () => {
+    if (!redisStackAvailable) return;
     const sessionId = uuidv4();
     const session = new AuthSessionEntity();
     session.injectorName = 'TestInjector';
@@ -74,6 +66,7 @@ describe('AuthSessionEntity (Complex E2E)', () => {
   });
 
   it('should expire session after TTL', async () => {
+    if (!redisStackAvailable) return;
     const sessionId = uuidv4();
     const session = new AuthSessionEntity();
     session.injectorName = 'TestInjector-TTL';
@@ -86,13 +79,11 @@ describe('AuthSessionEntity (Complex E2E)', () => {
 
     await sessionRepo.save(sessionId, session);
 
-    // 2s TTL
     await sessionRepo.expire(sessionId, 2);
 
     await new Promise((r) => setTimeout(r, 3000));
 
     const check = await sessionRepo.fetch(sessionId);
-    // Verify expiration
     const keys = Object.keys(check || {});
     if (check && keys.length > 0) {
       expect(check.injectorName).toBeUndefined();
@@ -100,6 +91,7 @@ describe('AuthSessionEntity (Complex E2E)', () => {
   }, 10000);
 
   it('should perform complex searches on indexed fields', async () => {
+    if (!redisStackAvailable) return;
     const targetExternalId = 'ext|target-user-' + Date.now();
     const prefix = `sess_test_${Date.now()}_`;
 
@@ -126,29 +118,26 @@ describe('AuthSessionEntity (Complex E2E)', () => {
     );
 
     try {
-      await new Promise((r) => setTimeout(r, 4000)); // Wait for indexing
+      await new Promise((r) => setTimeout(r, 4000));
 
-      // Search by External ID
-      let results = await sessionRepo
+      const result1 = await sessionRepo
         .search()
         .where('externalId')
         .eq(targetExternalId)
         .return.all();
 
-      expect(results.length).toBe(3);
+      expect(result1.length).toBe(3);
 
-      // Search by External ID AND Context TenantA
-      results = await sessionRepo
+      const result2 = await sessionRepo
         .search()
         .where('externalId')
         .eq(targetExternalId)
         .and('context')
         .eq('TenantA')
         .return.all();
-      expect(results.length).toBe(2);
+      expect(result2.length).toBe(2);
 
-      // Search by External ID AND Context TenantA AND PlatformContext MobileApp
-      results = await sessionRepo
+      const result3 = await sessionRepo
         .search()
         .where('externalId')
         .eq(targetExternalId)
@@ -157,7 +146,7 @@ describe('AuthSessionEntity (Complex E2E)', () => {
         .and('platformContext')
         .eq('MobileApp')
         .return.all();
-      expect(results.length).toBe(1);
+      expect(result3.length).toBe(1);
     } catch (e: any) {
       if (e.message?.includes('unknown command')) {
         console.warn('Skipping search verification, RediSearch not available');
@@ -168,6 +157,7 @@ describe('AuthSessionEntity (Complex E2E)', () => {
   });
 
   it('should simulate updating lastUsedDate', async () => {
+    if (!redisStackAvailable) return;
     const sessionId = uuidv4();
     const session = new AuthSessionEntity();
     session.injectorName = 'UpdateTest';
@@ -181,7 +171,6 @@ describe('AuthSessionEntity (Complex E2E)', () => {
 
     await sessionRepo.save(sessionId, session);
 
-    // Update lastUsedDate
     const fetched = await sessionRepo.fetch(sessionId);
     const newDate = new Date();
     fetched.lastUsedDate = newDate;
@@ -196,6 +185,7 @@ describe('AuthSessionEntity (Complex E2E)', () => {
   });
 
   it('should search by nested device info', async () => {
+    if (!redisStackAvailable) return;
     const sessionId = uuidv4();
     const session = new AuthSessionEntity();
     session.injectorName = 'NestedTest';
@@ -206,7 +196,6 @@ describe('AuthSessionEntity (Complex E2E)', () => {
     session.accessToken = 'a';
     session.idToken = 'i';
 
-    // Populate nested fields
     session.deviceInfo = {
       model: 'iPhone 15',
       os: 'iOS',
@@ -214,27 +203,25 @@ describe('AuthSessionEntity (Complex E2E)', () => {
 
     await sessionRepo.save(sessionId, session);
     try {
-      await new Promise((r) => setTimeout(r, 4000)); // Index propagation
+      await new Promise((r) => setTimeout(r, 4000));
 
-      // Search by nested OS
-      const resultsOs = await sessionRepo
+      const iosSessions = await sessionRepo
         .search()
         .where('deviceOs')
         .eq('iOS')
         .return.all();
-      expect(resultsOs.length).toBeGreaterThanOrEqual(1);
+      expect(iosSessions.length).toBeGreaterThanOrEqual(1);
       expect(
-        resultsOs.find((s) => BaseEntity.getId(s) === sessionId),
+        iosSessions.find((s) => BaseEntity.getId(s) === sessionId),
       ).toBeDefined();
 
-      // Search by nested Model
-      const resultsModel = await sessionRepo
+      const iphone12Sessions = await sessionRepo
         .search()
         .where('deviceModel')
         .eq('iPhone 15')
         .return.all();
       expect(
-        resultsModel.find((s) => BaseEntity.getId(s) === sessionId),
+        iphone12Sessions.find((s) => BaseEntity.getId(s) === sessionId),
       ).toBeDefined();
     } catch (e: any) {
       if (e.message?.includes('unknown command')) {

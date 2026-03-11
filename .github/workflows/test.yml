@@ -8,9 +8,11 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      REDIS_CLUSTER_ROOT_NODES: redis://127.0.0.1:7000,redis://127.0.0.1:7001,redis://127.0.0.1:7002,redis://127.0.0.1:7003,redis://127.0.0.1:7004,redis://127.0.0.1:7005
     strategy:
       matrix:
-        node-version: [ 22.x, 24.x ]
+        node-version: [22.x, 24.x]
 
     services:
       redis:
@@ -23,6 +25,24 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
+      redis-cluster:
+        image: grokzen/redis-cluster:latest
+        ports:
+          - 7000:7000
+          - 7001:7001
+          - 7002:7002
+          - 7003:7003
+          - 7004:7004
+          - 7005:7005
+        env:
+          IP: "0.0.0.0"
+        options: >-
+          --health-cmd "redis-cli -p 7000 ping"
+          --health-interval 15s
+          --health-timeout 10s
+          --health-retries 10
+          --health-start-period 30s
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -30,20 +50,27 @@ jobs:
           token: ${{ secrets.TOKEN_GITHUB }}
 
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
+          cache: npm
 
-      - name: install dependencies
+      - name: Install dependencies
         run: npm ci
 
       - name: Lint
         run: npm run lint
 
-      - name: Run tests
-        # Unit tests usually don't need redis if mocked, but it's safe to have it available
+      - name: Unit tests
         run: npm run test
 
-      - name: Run e2e tests
-        # E2E tests connect to redis://localhost:6379 which maps to the service container
+      - name: Standalone E2E tests
         run: npm run test:e2e
+        env:
+          REDIS_URL: ${{ secrets.REDIS_URL }}
+
+      - name: Wait for Redis Cluster to be ready
+        run: bash scripts/wait-for-cluster.sh
+
+      - name: Cluster E2E tests
+        run: npm run test:e2e:cluster

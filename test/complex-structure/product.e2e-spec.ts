@@ -1,24 +1,29 @@
 import { TestingModule, Test } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { Repository } from 'redis-om';
-import * as dotenv from 'dotenv';
 
 import { getRepositoryToken } from '../../src/redis-om/common/redis-om.utils';
+import { isRedisStackAvailable, flushRedisWithConfig } from '../test-utils';
 import { ProductEntity } from './entities/product.entity';
 import { RedisOmModule, BaseEntity } from '../../src';
-
-dotenv.config({ path: '.env.test' });
+import { getRedisTestConfig } from '../e2e-config';
 
 describe('ProductEntity (e2e)', () => {
   let app: INestApplication;
   let productRepo: Repository<ProductEntity>;
+  let redisStackAvailable = true;
 
   beforeAll(async () => {
+    const config = getRedisTestConfig();
+
+    redisStackAvailable = await isRedisStackAvailable(config);
+    if (!redisStackAvailable) return;
+
+    await flushRedisWithConfig(config);
+
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [
-        RedisOmModule.forRoot({
-          url: process.env.REDIS_URL,
-        }),
+        RedisOmModule.forRoot(config),
         RedisOmModule.forFeature([ProductEntity]),
       ],
     }).compile();
@@ -29,14 +34,6 @@ describe('ProductEntity (e2e)', () => {
     productRepo = moduleFixture.get<Repository<ProductEntity>>(
       getRepositoryToken(ProductEntity),
     );
-
-    try {
-      await productRepo.dropIndex();
-    } catch {
-      // ignore
-    }
-
-    await productRepo.createIndex();
   });
 
   afterAll(async () => {
@@ -44,6 +41,7 @@ describe('ProductEntity (e2e)', () => {
   });
 
   it('should create and search products with complex types', async () => {
+    if (!redisStackAvailable) return;
     const product = new ProductEntity();
     product.title = 'Gaming Laptop High Performance';
     product.price = 1999.99;
@@ -55,9 +53,7 @@ describe('ProductEntity (e2e)', () => {
     expect(saved).toBeDefined();
     expect(BaseEntity.getId(saved)).toBeDefined();
 
-    await new Promise((r) => setTimeout(r, 1500)); // Allow some time for info to propagate
-
-    // 2. Tag Search
+    await new Promise((r) => setTimeout(r, 1500));
     const tagResult = await productRepo
       .search()
       .where('tags')
@@ -66,7 +62,6 @@ describe('ProductEntity (e2e)', () => {
     expect(tagResult.length).toBeGreaterThan(0);
     expect(tagResult[0].tags).toContain('gaming');
 
-    // 3. Number Range
     const rangeResult = await productRepo
       .search()
       .where('price')

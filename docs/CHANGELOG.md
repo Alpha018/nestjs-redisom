@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/Alpha018/nestjs-redisom/compare/v1.1.0...v1.1.1) (2026-07-20)
+
+
+### Bug Fixes
+
+* add explicit rootDir to tsconfig for TypeScript 6 compatibility ([2ceee46](https://github.com/Alpha018/nestjs-redisom/commit/2ceee46ccd17d0ea6c922e34ea22b1eed70f8c3c))
+
 # [1.1.0](https://github.com/Alpha018/nestjs-redisom/compare/v1.0.2...v1.1.0) (2026-03-11)
 
 

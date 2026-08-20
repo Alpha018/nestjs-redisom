@@ -26,8 +26,16 @@ export class SchemaFactory {
       );
     }
 
+    const nestedSeparator = schemaOptions.nestedSeparator ?? '_';
+
     const schemaDefinition: Record<string, any> = {};
-    this.buildSchemaProperties(target, schemaDefinition);
+    this.buildSchemaProperties(
+      target,
+      schemaDefinition,
+      '$',
+      '',
+      nestedSeparator,
+    );
 
     return new Schema(schemaOptions.name || target.name, schemaDefinition, {
       ...schemaOptions,
@@ -43,6 +51,7 @@ export class SchemaFactory {
     schemaDefinition: Record<string, any>,
     pathPrefix: string,
     keyPrefix: string,
+    nestedSeparator: string,
   ) {
     const fieldDefinition: any = { type: options.type || 'string' };
 
@@ -56,7 +65,9 @@ export class SchemaFactory {
       fieldDefinition.path = `${pathPrefix}.${propertyKey}`;
     }
 
-    const fieldKey = keyPrefix ? `${keyPrefix}_${propertyKey}` : propertyKey;
+    const fieldKey = keyPrefix
+      ? `${keyPrefix}${nestedSeparator}${propertyKey}`
+      : propertyKey;
 
     schemaDefinition[fieldKey] = fieldDefinition;
   }
@@ -70,10 +81,11 @@ export class SchemaFactory {
     schemaDefinition: Record<string, any>,
     pathPrefix: string,
     keyPrefix: string,
+    nestedSeparator: string,
   ) {
     const nestedPathPrefix = `${pathPrefix}.${propertyKey}`;
     const nestedKeyPrefix = keyPrefix
-      ? `${keyPrefix}_${propertyKey}`
+      ? `${keyPrefix}${nestedSeparator}${propertyKey}`
       : propertyKey;
 
     // Resolve factory function if needed
@@ -85,6 +97,7 @@ export class SchemaFactory {
       schemaDefinition,
       nestedPathPrefix,
       nestedKeyPrefix,
+      nestedSeparator,
     );
   }
 
@@ -96,6 +109,7 @@ export class SchemaFactory {
     schemaDefinition: Record<string, any>,
     pathPrefix: string,
     keyPrefix: string,
+    nestedSeparator: string,
   ) {
     const { propertyKey, options } = prop;
     const type = options.type;
@@ -107,6 +121,7 @@ export class SchemaFactory {
         schemaDefinition,
         pathPrefix,
         keyPrefix,
+        nestedSeparator,
       );
     } else {
       this.processStandardField(
@@ -115,6 +130,7 @@ export class SchemaFactory {
         schemaDefinition,
         pathPrefix,
         keyPrefix,
+        nestedSeparator,
       );
     }
   }
@@ -127,12 +143,19 @@ export class SchemaFactory {
     schemaDefinition: Record<string, any>,
     pathPrefix = '$',
     keyPrefix = '',
+    nestedSeparator = '_',
   ) {
     const propMetadata =
       Reflect.getMetadata(REDIS_OM_PROP_METADATA, target) || [];
 
     propMetadata.forEach((prop: any) => {
-      this.processProperty(prop, schemaDefinition, pathPrefix, keyPrefix);
+      this.processProperty(
+        prop,
+        schemaDefinition,
+        pathPrefix,
+        keyPrefix,
+        nestedSeparator,
+      );
     });
   }
 

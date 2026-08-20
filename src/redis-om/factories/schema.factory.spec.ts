@@ -41,5 +41,44 @@ describe('SchemaFactory', () => {
       const schema = SchemaFactory.createForClass(JsonEntity);
       expect(schema.dataStructure).toBe('JSON');
     });
+
+    it('should flatten nested properties with an underscore by default', () => {
+      class Address {
+        @Prop({ indexed: true })
+        city: string;
+      }
+
+      @Schema()
+      class PersonEntity {
+        @Prop({ type: () => Address })
+        address: Address;
+      }
+
+      const schema = SchemaFactory.createForClass(PersonEntity);
+      const fields = (schema as any).fields;
+
+      expect(fields.find((f: any) => f.name === 'address_city')).toBeDefined();
+      expect(schema.fieldByName('address_city')).not.toBeNull();
+    });
+
+    it('should flatten nested properties using a custom nestedSeparator', () => {
+      class Address {
+        @Prop({ indexed: true })
+        city: string;
+      }
+
+      @Schema({ nestedSeparator: '.' })
+      class PersonEntity {
+        @Prop({ type: () => Address })
+        address: Address;
+      }
+
+      const schema = SchemaFactory.createForClass(PersonEntity);
+      const fields = (schema as any).fields;
+
+      expect(fields.find((f: any) => f.name === 'address.city')).toBeDefined();
+      expect(schema.fieldByName('address.city')).not.toBeNull();
+      expect(schema.fieldByName('address_city')).toBeNull();
+    });
   });
 });

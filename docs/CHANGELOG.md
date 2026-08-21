@@ -1,3 +1,16 @@
+# [1.2.0](https://github.com/Alpha018/nestjs-redisom/compare/v1.1.1...v1.2.0) (2026-08-21)
+
+
+### Bug Fixes
+
+* **deps:** resync package-lock.json with package.json ([e1010b1](https://github.com/Alpha018/nestjs-redisom/commit/e1010b1ddb0b5b1a50705e687ec3037d45863591))
+
+
+### Features
+
+* **query:** add fieldPath helper for type-safe nested field lookups ([9fbaeba](https://github.com/Alpha018/nestjs-redisom/commit/9fbaeba61bf8c7a9d62a17009b53b5812ed8f957))
+* **schema:** allow custom separator for flattened nested field names ([759abe7](https://github.com/Alpha018/nestjs-redisom/commit/759abe732b92ed3f1c9fbca6b3b49c212e1fc04f))
+
 ## [1.1.1](https://github.com/Alpha018/nestjs-redisom/compare/v1.1.0...v1.1.1) (2026-07-20)
 
 

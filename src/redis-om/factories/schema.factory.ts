@@ -5,6 +5,7 @@ import {
   REDIS_OM_SCHEMA_METADATA,
   REDIS_OM_PROP_METADATA,
 } from '../redis-om.constants';
+import { resolveNestedTarget, isNestedClass } from '../common/nested-class.util';
 
 /**
  * Factory class responsible for generating Redis OM Schemas from decorated classes.
@@ -73,35 +74,6 @@ export class SchemaFactory {
   }
 
   /**
-   * Recursively processes a nested class property, flattening it into the parent schema.
-   */
-  private static processNestedClass(
-    type: any,
-    propertyKey: string,
-    schemaDefinition: Record<string, any>,
-    pathPrefix: string,
-    keyPrefix: string,
-    nestedSeparator: string,
-  ) {
-    const nestedPathPrefix = `${pathPrefix}.${propertyKey}`;
-    const nestedKeyPrefix = keyPrefix
-      ? `${keyPrefix}${nestedSeparator}${propertyKey}`
-      : propertyKey;
-
-    // Resolve factory function if needed
-    const nestedTarget =
-      type.prototype instanceof Object ? type : (type as any)();
-
-    this.buildSchemaProperties(
-      nestedTarget,
-      schemaDefinition,
-      nestedPathPrefix,
-      nestedKeyPrefix,
-      nestedSeparator,
-    );
-  }
-
-  /**
    * Routes property processing to either nested class handling or standard field handling.
    */
   private static processProperty(
@@ -114,7 +86,7 @@ export class SchemaFactory {
     const { propertyKey, options } = prop;
     const type = options.type;
 
-    if (this.isNestedClass(type)) {
+    if (isNestedClass(type)) {
       this.processNestedClass(
         type,
         propertyKey,
@@ -133,6 +105,33 @@ export class SchemaFactory {
         nestedSeparator,
       );
     }
+  }
+
+  /**
+   * Recursively processes a nested class property, flattening it into the parent schema.
+   */
+  private static processNestedClass(
+    type: any,
+    propertyKey: string,
+    schemaDefinition: Record<string, any>,
+    pathPrefix: string,
+    keyPrefix: string,
+    nestedSeparator: string,
+  ) {
+    const nestedPathPrefix = `${pathPrefix}.${propertyKey}`;
+    const nestedKeyPrefix = keyPrefix
+      ? `${keyPrefix}${nestedSeparator}${propertyKey}`
+      : propertyKey;
+
+    const nestedTarget = resolveNestedTarget(type);
+
+    this.buildSchemaProperties(
+      nestedTarget,
+      schemaDefinition,
+      nestedPathPrefix,
+      nestedKeyPrefix,
+      nestedSeparator,
+    );
   }
 
   /**
@@ -157,12 +156,5 @@ export class SchemaFactory {
         nestedSeparator,
       );
     });
-  }
-
-  private static isNestedClass(type: any): boolean {
-    return (
-      typeof type === 'function' &&
-      ![Boolean, String, Number, Date].includes(type)
-    );
   }
 }

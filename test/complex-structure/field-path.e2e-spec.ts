@@ -117,8 +117,8 @@ describe('fieldPath in a real search().where() (E2E)', () => {
   });
 
   it('throws before hitting Redis when the path does not match a decorated @Prop', () => {
-    expect(() =>
-      fieldPath(PersonEntity, 'homeAddress.country' as any),
-    ).toThrow(/is not a @Prop/);
+    expect(() => fieldPath(PersonEntity, 'homeAddress.country' as any)).toThrow(
+      /is not a @Prop/,
+    );
   });
 });

@@ -5,7 +5,10 @@ import {
   REDIS_OM_SCHEMA_METADATA,
   REDIS_OM_PROP_METADATA,
 } from '../redis-om.constants';
-import { resolveNestedTarget, isNestedClass } from '../common/nested-class.util';
+import {
+  resolveNestedTarget,
+  isNestedClass,
+} from '../common/nested-class.util';
 
 /**
  * Factory class responsible for generating Redis OM Schemas from decorated classes.

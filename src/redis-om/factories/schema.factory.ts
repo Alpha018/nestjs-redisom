@@ -5,6 +5,10 @@ import {
   REDIS_OM_SCHEMA_METADATA,
   REDIS_OM_PROP_METADATA,
 } from '../redis-om.constants';
+import {
+  resolveNestedTarget,
+  isNestedClass,
+} from '../common/nested-class.util';
 
 /**
  * Factory class responsible for generating Redis OM Schemas from decorated classes.
@@ -26,8 +30,16 @@ export class SchemaFactory {
       );
     }
 
+    const nestedSeparator = schemaOptions.nestedSeparator ?? '_';
+
     const schemaDefinition: Record<string, any> = {};
-    this.buildSchemaProperties(target, schemaDefinition);
+    this.buildSchemaProperties(
+      target,
+      schemaDefinition,
+      '$',
+      '',
+      nestedSeparator,
+    );
 
     return new Schema(schemaOptions.name || target.name, schemaDefinition, {
       ...schemaOptions,
@@ -43,6 +55,7 @@ export class SchemaFactory {
     schemaDefinition: Record<string, any>,
     pathPrefix: string,
     keyPrefix: string,
+    nestedSeparator: string,
   ) {
     const fieldDefinition: any = { type: options.type || 'string' };
 
@@ -56,9 +69,45 @@ export class SchemaFactory {
       fieldDefinition.path = `${pathPrefix}.${propertyKey}`;
     }
 
-    const fieldKey = keyPrefix ? `${keyPrefix}_${propertyKey}` : propertyKey;
+    const fieldKey = keyPrefix
+      ? `${keyPrefix}${nestedSeparator}${propertyKey}`
+      : propertyKey;
 
     schemaDefinition[fieldKey] = fieldDefinition;
+  }
+
+  /**
+   * Routes property processing to either nested class handling or standard field handling.
+   */
+  private static processProperty(
+    prop: any,
+    schemaDefinition: Record<string, any>,
+    pathPrefix: string,
+    keyPrefix: string,
+    nestedSeparator: string,
+  ) {
+    const { propertyKey, options } = prop;
+    const type = options.type;
+
+    if (isNestedClass(type)) {
+      this.processNestedClass(
+        type,
+        propertyKey,
+        schemaDefinition,
+        pathPrefix,
+        keyPrefix,
+        nestedSeparator,
+      );
+    } else {
+      this.processStandardField(
+        propertyKey,
+        options,
+        schemaDefinition,
+        pathPrefix,
+        keyPrefix,
+        nestedSeparator,
+      );
+    }
   }
 
   /**
@@ -70,53 +119,22 @@ export class SchemaFactory {
     schemaDefinition: Record<string, any>,
     pathPrefix: string,
     keyPrefix: string,
+    nestedSeparator: string,
   ) {
     const nestedPathPrefix = `${pathPrefix}.${propertyKey}`;
     const nestedKeyPrefix = keyPrefix
-      ? `${keyPrefix}_${propertyKey}`
+      ? `${keyPrefix}${nestedSeparator}${propertyKey}`
       : propertyKey;
 
-    // Resolve factory function if needed
-    const nestedTarget =
-      type.prototype instanceof Object ? type : (type as any)();
+    const nestedTarget = resolveNestedTarget(type);
 
     this.buildSchemaProperties(
       nestedTarget,
       schemaDefinition,
       nestedPathPrefix,
       nestedKeyPrefix,
+      nestedSeparator,
     );
-  }
-
-  /**
-   * Routes property processing to either nested class handling or standard field handling.
-   */
-  private static processProperty(
-    prop: any,
-    schemaDefinition: Record<string, any>,
-    pathPrefix: string,
-    keyPrefix: string,
-  ) {
-    const { propertyKey, options } = prop;
-    const type = options.type;
-
-    if (this.isNestedClass(type)) {
-      this.processNestedClass(
-        type,
-        propertyKey,
-        schemaDefinition,
-        pathPrefix,
-        keyPrefix,
-      );
-    } else {
-      this.processStandardField(
-        propertyKey,
-        options,
-        schemaDefinition,
-        pathPrefix,
-        keyPrefix,
-      );
-    }
   }
 
   /**
@@ -127,19 +145,19 @@ export class SchemaFactory {
     schemaDefinition: Record<string, any>,
     pathPrefix = '$',
     keyPrefix = '',
+    nestedSeparator = '_',
   ) {
     const propMetadata =
       Reflect.getMetadata(REDIS_OM_PROP_METADATA, target) || [];
 
     propMetadata.forEach((prop: any) => {
-      this.processProperty(prop, schemaDefinition, pathPrefix, keyPrefix);
+      this.processProperty(
+        prop,
+        schemaDefinition,
+        pathPrefix,
+        keyPrefix,
+        nestedSeparator,
+      );
     });
-  }
-
-  private static isNestedClass(type: any): boolean {
-    return (
-      typeof type === 'function' &&
-      ![Boolean, String, Number, Date].includes(type)
-    );
   }
 }

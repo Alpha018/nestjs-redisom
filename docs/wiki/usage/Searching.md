@@ -20,7 +20,7 @@ const users = await userRepo.search()
 
 ## 2. Searching Nested Fields
 
-As documented in **[[Defining Structures|Defining-Structures]]**, nested fields are flattened in the schema using underscores.
+As documented in **[[Defining Structures|Defining-Structures]]**, nested fields are flattened in the schema using underscores by default (or whatever `nestedSeparator` the entity's `@Schema()` configures).
 
 **Example: Find users living in 'New York'.**
 
@@ -33,6 +33,8 @@ const newYorkers = await userRepo.search()
   .eq('New York')
   .return.all();
 ```
+
+Prefer `fieldPath()` over hardcoding the flattened string; see [Section 6](#6-fieldpath-type-safe-nested-field-names) below.
 
 ## 3. Numeric Ranges and Dates
 
@@ -75,3 +77,48 @@ const results = await repo.search()
   .where('description').matches('fast')
   .return.all();
 ```
+
+## 6. `fieldPath`: Type-Safe Nested Field Names
+
+`fieldPath(Entity, pathOrSelector)` resolves the flattened field key for a `.where()` call by walking the entity's `@Prop` metadata, so you don't have to know or hardcode its `nestedSeparator` (`_` by default, or whatever [[Defining Structures|Defining-Structures]] configures).
+
+It accepts either a typed property selector or a dot-separated string; both resolve to the same key:
+
+```typescript
+import { fieldPath } from 'nestjs-redisom';
+
+// Typed selector: autocompletes, and fails to compile if the property doesn't exist
+await customerRepo.search()
+  .where(fieldPath(Customer, (c) => c.address.city))
+  .eq('New York')
+  .return.all();
+
+// Equivalent string form, handy when the path is built dynamically
+await customerRepo.search()
+  .where(fieldPath(Customer, 'address.city'))
+  .eq('New York')
+  .return.all();
+```
+
+Both forms work for root fields too: `fieldPath(Customer, (c) => c.name)` resolves to `'name'`.
+
+### Validation
+
+`fieldPath` throws immediately, before the query ever reaches Redis, when the path doesn't correspond to an actual decorated structure:
+
+```typescript
+fieldPath(Customer, 'address.country');
+// Error: Invalid field path 'address.country': 'country' is not a @Prop() of Address.
+
+fieldPath(Customer, 'name.first');
+// Error: Invalid field path 'name.first': 'name' is not a nested object, so 'first' cannot be accessed on it.
+```
+
+This catches typos and stale paths (e.g. after renaming a `@Prop`) at the call site, instead of a query silently returning zero results.
+
+### Why not just use the raw string?
+
+`.where('address_city' as any)` still works and always will. `fieldPath` doesn't replace it; it just removes two footguns:
+
+1. You no longer need to know which separator the entity's `@Schema()` uses (`_` vs a custom `nestedSeparator`).
+2. A typo or renamed property fails fast instead of quietly matching nothing.

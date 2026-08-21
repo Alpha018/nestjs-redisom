@@ -107,6 +107,27 @@ RediSearch (by default) is flat. We flatten your schema path using underscores:
 - `address.city` becomes `address_city` in the search index.
 - The data remains nested JSON in Redis.
 
+### Custom Separator (`nestedSeparator`)
+
+If `_` collides with your own naming conventions, set `nestedSeparator` on `@Schema()` to flatten with a different character instead. `.` matches how you'd normally read a nested path:
+
+```typescript
+@Schema({ nestedSeparator: '.' })
+export class Customer extends BaseEntity {
+  @Prop()
+  name: string;
+
+  @Prop({ type: () => Address })
+  address: Address;
+}
+```
+
+- `address.city` now becomes the index field `address.city` instead of `address_city`.
+- Only the flattened field name changes; the underlying JSON structure and `@Prop` definitions stay the same.
+- Defaults to `_` when omitted, so existing schemas are unaffected.
+
+See **[[Advanced Searching|Searching]]** for how to build the flattened field name without hardcoding the separator.
+
 ---
 
 ## 4. Deeply Nested Structures
@@ -201,23 +222,40 @@ const products = await productRepo.search()
 
 ### C. Searching Nested Fields
 
-Use the flattened name (property names joined by `_`).
+Use `fieldPath()` instead of hardcoding the flattened name. It resolves the property chain against the entity's `@Prop` metadata and joins it with whatever `nestedSeparator` that entity uses, so you never need to know (or hardcode) `_` vs `.` yourself.
 
 ```typescript
+import { fieldPath } from 'nestjs-redisom';
+
 // Find customers in 'New York'
 const customers = await customerRepo.search()
-  .where('address_city' as any) // Cast to satisfy TS if property doesn't exist on top level
+  .where(fieldPath(Customer, (c) => c.address.city))
   .eq('New York')
   .return.all();
 ```
 
+`fieldPath` also accepts a plain dot-separated string, which is handy when the field name is built dynamically:
+
+```typescript
+const customers = await customerRepo.search()
+  .where(fieldPath(Customer, 'address.city'))
+  .eq('New York')
+  .return.all();
+```
+
+Either form throws immediately if the path doesn't match a decorated `@Prop` (e.g. a typo, or a segment that isn't a nested class), instead of silently returning zero results. See **[[Advanced Searching|Searching]]** for the full `fieldPath` API.
+
+> Prefer the raw flattened string (`'address_city' as any`)? That still works: `fieldPath` is an ergonomic wrapper around it, not a replacement for `.where()`.
+
 ### D. Deep Nested Logic
 
 ```typescript
+import { fieldPath } from 'nestjs-redisom';
+
 // Find sessions where OS is iOS AND caused by location > 40 lat
 const sessions = await sessionRepo.search()
-  .where('meta_os' as any).eq('iOS')
-  .and('meta_location_lat' as any).gt(40)
+  .where(fieldPath(Session, (s) => s.meta.os)).eq('iOS')
+  .and(fieldPath(Session, (s) => s.meta.location.lat)).gt(40)
   .return.all();
 ```
 

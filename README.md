@@ -2,7 +2,7 @@
 
 <div align="center">
   <a href="http://nestjs.com/" target="_blank">
-    <img src="https://nestjs.com/img/logo_text.svg" width="150" alt="Nest Logo" />
+    <img src="https://docs.nestjs.com/assets/logo_text.svg" width="150" alt="Nest Logo" />
   </a>
 </div>
 
@@ -159,7 +159,22 @@ const results = await this.personRepo.search()
   .return.all();
 ```
 
-> **Note**: Discover more about embedded objects and array structures in the [Wiki: Defining Structures](https://github.com/Alpha018/nestjs-redisom/wiki/Defining-Structures).
+**A type-safe alternative: `fieldPath`**
+
+Instead of hardcoding the flattened key, `fieldPath(Entity, pathOrSelector)` builds it for you from the entity's own `@Prop` metadata, so you never have to know or guess the separator:
+
+```typescript
+import { fieldPath } from 'nestjs-redisom';
+
+const results = await this.personRepo.search()
+  .where(fieldPath(Person, (p) => p.address.city)) // or fieldPath(Person, 'address.city')
+  .eq('New York')
+  .return.all();
+```
+
+It throws immediately if the path doesn't match a decorated property, catching typos before the query ever reaches Redis. You can also change the separator itself with `@Schema({ nestedSeparator: '.' })` if `_` doesn't fit your naming conventions; `fieldPath` picks it up automatically.
+
+> **Note**: Discover more about embedded objects, custom separators, and `fieldPath` in the [Wiki: Defining Structures](https://github.com/Alpha018/nestjs-redisom/wiki/Defining-Structures) and [Wiki: Advanced Searching](https://github.com/Alpha018/nestjs-redisom/wiki/Searching).
 
 ### 2. Custom IDs
 
@@ -251,7 +266,7 @@ RedisOmModule.forRoot({
 ## Features
 
 - **Schema Factory**: Automatically generates RedisOM schemas from your class metadata.
-- **Nested Objects**: Support for typed nested objects with automatic schema flattening.
+- **Nested Objects**: Support for typed nested objects with automatic schema flattening, with a configurable separator (`nestedSeparator`) and a type-safe `fieldPath()` helper for building flattened search keys.
 - **Async Configuration**: Supports `useFactory`, `useClass`, and `useExisting` for configuration.
 - **Validation**: Compatible with `class-validator` (standard NestJS practice).
 

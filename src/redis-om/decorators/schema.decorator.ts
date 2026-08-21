@@ -6,6 +6,8 @@ import { REDIS_OM_SCHEMA_METADATA } from '../redis-om.constants';
 export interface SchemaOptions {
   /** The underlying data structure in Redis (JSON or HASH). Defaults to JSON. */
   dataStructure?: 'JSON' | 'HASH';
+  /** Separator used to flatten nested object field names (e.g. `address_city`). Defaults to `_`. */
+  nestedSeparator?: string;
   /** Custom name for the search index. */
   indexName?: string;
   /** The schema prefix/name used for key generation (e.g., `Person` -> `Person:ID`). */

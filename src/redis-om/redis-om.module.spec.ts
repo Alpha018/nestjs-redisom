@@ -1,22 +1,31 @@
 import { TestingModule, Test } from '@nestjs/testing';
 import { Module } from '@nestjs/common';
+import { jest } from '@jest/globals';
 import * as dotenv from 'dotenv';
 
-import { getConnectionToken } from './common/redis-om.utils';
-import { RedisOmCoreModule } from './redis-om-core.module';
-import { RedisOmModuleOptions } from './interfaces';
-import { RedisOmModule } from './redis-om.module';
+import type { RedisOmModuleOptions } from './interfaces';
+
 dotenv.config({ path: '.env.test', quiet: true } as any);
 
 // Mock Redis client
-jest.mock('redis', () => ({
+jest.unstable_mockModule('redis', () => ({
+  createCluster: jest.fn().mockReturnValue({
+    connect: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
+    disconnect: jest.fn(),
+    quit: jest.fn(),
+    on: jest.fn(),
+  }),
   createClient: jest.fn().mockReturnValue({
-    connect: jest.fn().mockResolvedValue(undefined),
+    connect: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
     disconnect: jest.fn(),
     quit: jest.fn(),
     on: jest.fn(),
   }),
 }));
+
+const { getConnectionToken } = await import('./common/redis-om.utils');
+const { RedisOmCoreModule } = await import('./redis-om-core.module');
+const { RedisOmModule } = await import('./redis-om.module');
 
 describe('RedisOmModule', () => {
   describe('forRoot', () => {

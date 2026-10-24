@@ -4,7 +4,7 @@ This section is for contributors who want to modify the library, run tests, or d
 
 ## Prerequisites
 
-- Node.js (>= 20)
+- Node.js (>= 20.19)
 - Docker & Docker Compose (for running Redis stack locally)
 
 ## Setting up the Environment

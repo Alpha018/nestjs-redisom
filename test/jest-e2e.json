@@ -9,9 +9,18 @@
   "testRegex": ".e2e-spec.ts$",
   "testTimeout": 30000,
   "transform": {
-    "^.+\\.(t|j)s$": "ts-jest"
+    "^.+\\.(t|j)s$": [
+      "ts-jest",
+      {
+        "tsconfig": "<rootDir>/../tsconfig.jest.json",
+        "useESM": true
+      }
+    ]
   },
   "transformIgnorePatterns": [
-    "/node_modules/(?!@faker-js)"
+    "/node_modules/(?!(@faker-js|@nestjs))"
+  ],
+  "extensionsToTreatAsEsm": [
+    ".ts"
   ]
 }

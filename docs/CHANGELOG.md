@@ -1,3 +1,18 @@
+# [2.0.0](https://github.com/Alpha018/nestjs-redisom/compare/v1.2.0...v2.0.0) (2026-10-24)
+
+
+* feat(deps)!: upgrade to NestJS 12 and refresh dev dependencies ([22be698](https://github.com/Alpha018/nestjs-redisom/commit/22be69893c29584aba80d71bf43e649552ad3cce))
+
+
+### Bug Fixes
+
+* **deps:** resync package-lock.json with package.json ([5826bf3](https://github.com/Alpha018/nestjs-redisom/commit/5826bf394fb802d1c639c2a71f3076ce614897e1))
+
+
+### BREAKING CHANGES
+
+* requires Node.js >= 20.19.0 and @nestjs/* ^12.
+
 # [1.2.0](https://github.com/Alpha018/nestjs-redisom/compare/v1.1.1...v1.2.0) (2026-08-21)
 
 
